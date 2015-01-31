@@ -19,6 +19,11 @@
 
 namespace Phalcon\Cache\Backend;
 
+use Phalcon\Cache\Backend;
+use Phalcon\Cache\BackendInterface;
+use Phalcon\Cache\FrontendInterface;
+use Phalcon\Cache\Exception;
+
 /**
  * Phalcon\Cache\Backend\Libmemcached
  *
@@ -54,7 +59,7 @@ namespace Phalcon\Cache\Backend;
  *
  *</code>
  */
-class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\BackendInterface
+class Libmemcached extends Backend implements BackendInterface
 {
 
 	protected _memcache = null;
@@ -65,7 +70,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 	 * @param	Phalcon\Cache\FrontendInterface frontend
 	 * @param	array options
 	 */
-	public function __construct(<\Phalcon\Cache\FrontendInterface> frontend, options=null)
+	public function __construct(<FrontendInterface> frontend, options=null)
 	{
 		var servers;
 
@@ -74,7 +79,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 		}
 
 		if !isset options["servers"] {
-            let servers = [0: ["host": "127.0.0.1", "port": 11211, "weigth": 1]];
+			let servers = [0: ["host": "127.0.0.1", "port": 11211, "weight": 1]];
 			let options["servers"] = servers;
 		}
 
@@ -96,22 +101,22 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 		let memcache = new \Memcached();
 
 		if !fetch servers, options["servers"] {
-			throw new \Phalcon\Cache\Exception("Servers must be an array");
+			throw new Exception("Servers must be an array");
 		}
 
 		if typeof servers != "array" {
-			throw new \Phalcon\Cache\Exception("Servers must be an array");
+			throw new Exception("Servers must be an array");
 		}
 
 		if !memcache->addServers(servers) {
-			throw new \Phalcon\Cache\Exception("Cannot connect to Memcached server");
+			throw new Exception("Cannot connect to Memcached server");
 		}
 
 		let client = options["client"];
 		if typeof client == "array" {
 			memcache->setOptions(client);
 		} else {
-			throw new \Phalcon\Cache\Exception("Client options must be instance of array");
+			throw new Exception("Client options must be instance of array");
 		}
 
 		let this->_memcache = memcache;
@@ -124,7 +129,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 	 * @param   long lifetime
 	 * @return  mixed
 	 */
-	public function get(keyName, lifetime=null)
+	public function get(keyName, lifetime = null)
 	{
 		var memcache, prefixedKey, cachedContent;
 
@@ -157,7 +162,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 	 * @param long lifetime
 	 * @param boolean stopBuffer
 	 */
-	public function save(keyName=null, content=null, lifetime=null, stopBuffer=true)
+	public function save(keyName = null, content = null, lifetime = null, stopBuffer = true)
 	{
 		var lastKey, frontend, memcache, cachedContent, preparedContent, tmp, tt1, success, options,
 			specialKey, keys, isBuffering;
@@ -169,7 +174,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 		}
 
 		if !lastKey {
-			throw new \Phalcon\Cache\Exception("Cache must be started first");
+			throw new Exception("Cache must be started first");
 		}
 
 		let frontend = this->_frontend;
@@ -215,26 +220,28 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 		}
 
 		if !success {
-			throw new \Phalcon\Cache\Exception("Failed storing data in memcached");
+			throw new Exception("Failed storing data in memcached");
 		}
 
 		let options = this->_options;
 
 		if !fetch specialKey, options["statsKey"] {
-			throw new \Phalcon\Cache\Exception("Unexpected inconsistency in options");
+			throw new Exception("Unexpected inconsistency in options");
 		}
 
-		/**
-		* Update the stats key
-		*/
-		let keys = memcache->get(specialKey);
-		if typeof keys != "array" {
-			let keys = [];
-		}
+		if specialKey != "" {
+			/**
+			 * Update the stats key
+			 */
+			let keys = memcache->get(specialKey);
+			if typeof keys != "array" {
+				let keys = [];
+			}
 
-		if !isset keys[lastKey] {
-			let keys[lastKey] = tt1;
-			memcache->set(specialKey, keys);
+			if !isset keys[lastKey] {
+				let keys[lastKey] = tt1;
+				memcache->set(specialKey, keys);
+			}
 		}
 
 		let isBuffering = frontend->isBuffering();
@@ -270,13 +277,15 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 		let options = this->_options;
 
 		if !fetch specialKey, options["statsKey"] {
-			throw new \Phalcon\Cache\Exception("Unexpected inconsistency in options");
+			throw new Exception("Unexpected inconsistency in options");
 		}
 
-		let keys = memcache->get(specialKey);
-		if typeof keys == "array" {
-			unset keys[prefixedKey];
-			memcache->set(specialKey, keys);
+		if specialKey != "" {
+			let keys = memcache->get(specialKey);
+			if typeof keys == "array" {
+				unset keys[prefixedKey];
+				memcache->set(specialKey, keys);
+			}
 		}
 
 		/**
@@ -291,7 +300,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 	 * @param string prefix
 	 * @return array
 	 */
-	public function queryKeys(prefix=null)
+	public function queryKeys(prefix = null)
 	{
 		var memcache, options, keys, specialKey, key;
 
@@ -305,7 +314,11 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 		let options = this->_options;
 
 		if !fetch specialKey, options["statsKey"] {
-			throw new \Phalcon\Cache\Exception("Unexpected inconsistency in options");
+			throw new Exception("Unexpected inconsistency in options");
+		}
+
+		if specialKey == "" {
+			throw new Exception("Cached keys were disabled (options['statsKey'] == ''), you shouldn't use this function");
 		}
 
 		/**
@@ -315,7 +328,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 		if typeof keys == "array" {
 			for key in keys {
 				if prefix && !starts_with(key, prefix) {
-					unset(keys[key]);
+					unset keys[key];
 				}
 			}
 		}
@@ -330,7 +343,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 	 * @param   long lifetime
 	 * @return boolean
 	 */
-	public function exists(keyName=null, lifetime=null) -> boolean
+	public function exists(keyName = null, lifetime = null) -> boolean
 	{
 		var lastKey, memcache, value;
 
@@ -363,7 +376,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 	 * @param  long lifetime
 	 * @return long
 	 */
-	public function increment(keyName=null, value=null)
+	public function increment(keyName = null, value = null)
 	{
 		var memcache, prefix, lastKey;
 
@@ -396,7 +409,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 	 * @param  long value
 	 * @return long
 	 */
-	public function decrement(keyName=null, value=null)
+	public function decrement(keyName = null, value = null)
 	{
 		var memcache, prefix, lastKey;
 
@@ -441,7 +454,11 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 		let options = this->_options;
 
 		if !fetch specialKey, options["statsKey"] {
-			throw new \Phalcon\Cache\Exception("Unexpected inconsistency in options");
+			throw new Exception("Unexpected inconsistency in options");
+		}
+
+		if specialKey == "" {
+			throw new Exception("Cached keys were disabled (options['statsKey'] == ''), flush of memcached phalcon-related keys isn't implemented for now");
 		}
 
 		/**
@@ -454,7 +471,7 @@ class Libmemcached extends \Phalcon\Cache\Backend implements \Phalcon\Cache\Back
 			}
 			memcache->set(specialKey, keys);
 		}
+
 		return true;
 	}
-
 }

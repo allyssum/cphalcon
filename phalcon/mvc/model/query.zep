@@ -20,6 +20,7 @@
 
 namespace Phalcon\Mvc\Model;
 
+use Phalcon\DiInterface;
 use Phalcon\Mvc\Model\Exception;
 use Phalcon\Mvc\Model\ManagerInterface;
 use Phalcon\Mvc\Model\QueryInterface;
@@ -107,10 +108,10 @@ class Query implements QueryInterface, InjectionAwareInterface
 	/**
 	 * Phalcon\Mvc\Model\Query constructor
 	 *
-	 * @param string $phql
+	 * @param string phql
 	 * @param Phalcon\DiInterface dependencyInjector
 	 */
-	public function __construct(phql = null, <\Phalcon\DiInterface> dependencyInjector = null)
+	public function __construct(phql = null, <DiInterface> dependencyInjector = null)
 	{
 		if typeof phql != "null" {
 			let this->_phql = phql;
@@ -126,7 +127,7 @@ class Query implements QueryInterface, InjectionAwareInterface
 	 *
 	 * @param Phalcon\DiInterface dependencyInjector
 	 */
-	public function setDI(<\Phalcon\DiInterface> dependencyInjector)
+	public function setDI(<DiInterface> dependencyInjector)
 	{
 		var manager, metaData;
 
@@ -151,7 +152,7 @@ class Query implements QueryInterface, InjectionAwareInterface
 	 *
 	 * @return Phalcon\DiInterface
 	 */
-	public function getDI() -> <\Phalcon\DiInterface>
+	public function getDI() -> <DiInterface>
 	{
 		return this->_dependencyInjector;
 	}
@@ -1778,7 +1779,7 @@ class Query implements QueryInterface, InjectionAwareInterface
 	protected final function _prepareInsert() -> array
 	{
 		var ast, qualifiedName, manager, modelName, model, source, schema,
-			sqlAliases, exprValues, exprValue, sqlInsert, metaData, fields,
+			exprValues, exprValue, sqlInsert, metaData, fields,
 			sqlFields, field, name;
 		boolean notQuoting;
 
@@ -1810,9 +1811,8 @@ class Query implements QueryInterface, InjectionAwareInterface
 			let source = [schema, source];
 		}
 
-		let sqlAliases = [],
-			notQuoting = false,
-			exprValues = [];
+		let notQuoting = false,
+		    exprValues = [];
 
 		for exprValue in ast["values"] {
 
@@ -2782,7 +2782,7 @@ class Query implements QueryInterface, InjectionAwareInterface
 		 * If there are no records to apply the update we return success
 		 */
 		if !count(records) {
-			return new Status(true, null);
+			return new Status(true);
 		}
 
 		if method_exists(model, "selectWriteConnection") {
@@ -2820,7 +2820,7 @@ class Query implements QueryInterface, InjectionAwareInterface
 		 */
 		connection->commit();
 
-		return new Status(true, null);
+		return new Status(true);
 	}
 
 	/**
@@ -2859,7 +2859,7 @@ class Query implements QueryInterface, InjectionAwareInterface
 		 * If there are no records to delete we return success
 		 */
 		if !count(records) {
-			return new Status(true, null);
+			return new Status(true);
 		}
 
 		if method_exists(model, "selectWriteConnection") {
@@ -2901,7 +2901,7 @@ class Query implements QueryInterface, InjectionAwareInterface
 		/**
 		 * Create a status to report the deletion status
 		 */
-		return new Status(true, null);
+		return new Status(true);
 	}
 
 	/**
@@ -2922,11 +2922,11 @@ class Query implements QueryInterface, InjectionAwareInterface
 		 * Instead of create a PHQL string statement we manually create the IR representation
 		 */
 		let selectIr = [
-			"columns": [[[
+			"columns": [[
 				"type"  : "object",
 				"model" : get_class(model),
 				"column": model->getSource()
-			]]],
+			]],
 			"models":  intermediate["models"],
 			"tables":  intermediate["tables"]
 		];

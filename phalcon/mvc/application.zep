@@ -126,13 +126,9 @@ class Application extends Injectable
 	 * @param boolean merge
 	 * @param Phalcon\Mvc\Application
 	 */
-	public function registerModules(modules, boolean merge = false) -> <Application>
+	public function registerModules(array modules, boolean merge = false) -> <Application>
 	{
 		var registeredModules;
-
-		if typeof modules != "array" {
-			throw new Exception("Modules must be an Array");
-		}
 
 		if merge === false {
 			let this->_modules = modules;
@@ -156,6 +152,23 @@ class Application extends Injectable
 	public function getModules()
 	{
 		return this->_modules;
+	}
+
+	/**
+	 * Gets the module definition registered in the application via module name
+	 *
+	 * @param string name
+	 * @return array|object
+	 */
+	public function getModule(string! name)
+	{
+		var module;
+
+		if !fetch module, this->_modules[name] {
+			throw new Exception("Module '" . name . "' isn't registered in the application container");
+		}
+
+		return module;
 	}
 
 	/**
@@ -233,17 +246,15 @@ class Application extends Injectable
 		if moduleName {
 
 			if typeof eventsManager == "object" {
-				if eventsManager->fire("application:beforeStartModule", this) === false {
+				if eventsManager->fire("application:beforeStartModule", this, moduleName) === false {
 					return false;
 				}
 			}
 
 			/**
-			 * Check if the module passed by the router is registered in the modules container
+			 * Gets the module definition
 			 */
-			if !fetch module, this->_modules[moduleName] {
-				throw new Exception("Module '" . moduleName . "' isn't registered in the application container");
-			}
+			let module = this->getModule(moduleName);
 
 			/**
 			 * A module definition must ne an array or an object
@@ -446,5 +457,4 @@ class Application extends Injectable
 		 */
 		return response;
 	}
-
 }

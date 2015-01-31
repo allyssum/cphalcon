@@ -318,15 +318,18 @@ class Request implements RequestInterface, InjectionAwareInterface
 	 */
 	public final function getHeader(string! header) -> string
 	{
-		var serverValue, headerValue;
+		var value, name;
 
-		if fetch serverValue, _SERVER[header] {
-			return serverValue;
+		let name = strtoupper(strtr(header, "-", "_"));
+
+		if fetch value, _SERVER[name] {
+			return value;
 		} else {
-			if fetch headerValue, _SERVER["HTTP_" . header] {
-				return headerValue;
+			if fetch value, _SERVER["HTTP_" . name] {
+				return value;
 			}
 		}
+
 		return "";
 	}
 
@@ -353,13 +356,13 @@ class Request implements RequestInterface, InjectionAwareInterface
 	}
 
 	/**
-	 * Checks whether request has been made using ajax. Checks if $_SERVER['HTTP_X_REQUESTED_WITH']=='XMLHttpRequest'
+	 * Checks whether request has been made using ajax
 	 *
 	 * @return boolean
 	 */
 	public function isAjax() -> boolean
 	{
-		return this->getHeader("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest";
+		return isset _SERVER["HTTP_X_REQUESTED_WITH"] && _SERVER["HTTP_X_REQUESTED_WITH"] === "XMLHttpRequest";
 	}
 
 	/**
@@ -369,13 +372,13 @@ class Request implements RequestInterface, InjectionAwareInterface
 	 */
 	public function isSoapRequested() -> boolean
 	{
-		var server, contentType;
+		var contentType;
 
-		let server = _SERVER;
-		if isset server["HTTP_SOAPACTION"] {
+		if isset _SERVER["HTTP_SOAPACTION"] {
 			return true;
 		} else {
-			if fetch contentType, server["CONTENT_TYPE"] {
+			let contentType = this->getContentType();
+			if !empty contentType {
 				return memstr(contentType, "application/soap+xml");
 			}
 		}
@@ -418,15 +421,16 @@ class Request implements RequestInterface, InjectionAwareInterface
 	/**
 	 * Gets decoded JSON HTTP raw request body
 	 *
+	 * @param boolean associative
 	 * @return string
 	 */
-	public function getJsonRawBody()
+	public function getJsonRawBody(boolean associative = false)
 	{
 		var rawBody;
 
 		let rawBody = this->getRawBody();
 		if typeof rawBody == "string" {
-			return json_decode(rawBody);
+			return json_decode(rawBody, associative);
 		}
 
 		return false;
@@ -513,20 +517,21 @@ class Request implements RequestInterface, InjectionAwareInterface
 
 	}
 
-        /**
-         * Gets HTTP URI which request has been made
-         *
-         * @return string
-         */
-        public final function getURI() -> string
-        {
-                var requestURI;
+	/**
+	 * Gets HTTP URI which request has been made
+	 *
+	 * @return string
+	 */
+	public final function getURI() -> string
+	{
+		var requestURI;
 
-                if fetch requestURI, _SERVER["REQUEST_URI"] {
-                        return requestURI;
-                }
-                return "";
-        }
+		if fetch requestURI, _SERVER["REQUEST_URI"] {
+			return requestURI;
+		}
+
+		return "";
+	}
 
 	/**
 	 * Gets most possible client IPv4 Address. This method search in _SERVER['REMOTE_ADDR'] and optionally in _SERVER['HTTP_X_FORWARDED_FOR']
@@ -619,74 +624,74 @@ class Request implements RequestInterface, InjectionAwareInterface
 	}
 
 	/**
-	 * Checks whether HTTP method is POST. if _SERVER["REQUEST_METHOD"]=="POST"
+	 * Checks whether HTTP method is POST. if _SERVER["REQUEST_METHOD"]==="POST"
 	 *
 	 * @return boolean
 	 */
 	public function isPost() -> boolean
 	{
-		return this->getMethod() == "POST";
+		return this->getMethod() === "POST";
 	}
 
 	/**
 	 *
-	 * Checks whether HTTP method is GET. if _SERVER["REQUEST_METHOD"]=="GET"
+	 * Checks whether HTTP method is GET. if _SERVER["REQUEST_METHOD"]==="GET"
 	 *
 	 * @return boolean
 	 */
 	public function isGet() -> boolean
 	{
-		return this->getMethod() == "GET";
+		return this->getMethod() === "GET";
 	}
 
 	/**
-	 * Checks whether HTTP method is PUT. if _SERVER["REQUEST_METHOD"]=="PUT"
+	 * Checks whether HTTP method is PUT. if _SERVER["REQUEST_METHOD"]==="PUT"
 	 *
 	 * @return boolean
 	 */
 	public function isPut() -> boolean
 	{
-		return this->getMethod() == "PUT";
+		return this->getMethod() === "PUT";
 	}
 
 	/**
-	 * Checks whether HTTP method is PATCH. if _SERVER["REQUEST_METHOD"]=="PATCH"
+	 * Checks whether HTTP method is PATCH. if _SERVER["REQUEST_METHOD"]==="PATCH"
 	 *
 	 * @return boolean
 	 */
 	public function isPatch() -> boolean
 	{
-		return this->getMethod() == "PATCH";
+		return this->getMethod() === "PATCH";
 	}
 
 	/**
-	 * Checks whether HTTP method is HEAD. if _SERVER["REQUEST_METHOD"]=="HEAD"
+	 * Checks whether HTTP method is HEAD. if _SERVER["REQUEST_METHOD"]==="HEAD"
 	 *
 	 * @return boolean
 	 */
 	public function isHead() -> boolean
 	{
-		return this->getMethod() == "HEAD";
+		return this->getMethod() === "HEAD";
 	}
 
 	/**
-	 * Checks whether HTTP method is DELETE. if _SERVER["REQUEST_METHOD"]=="DELETE"
+	 * Checks whether HTTP method is DELETE. if _SERVER["REQUEST_METHOD"]==="DELETE"
 	 *
 	 * @return boolean
 	 */
 	public function isDelete() -> boolean
 	{
-		return this->getMethod() == "DELETE";
+		return this->getMethod() === "DELETE";
 	}
 
 	/**
-	 * Checks whether HTTP method is OPTIONS. if _SERVER["REQUEST_METHOD"]=="OPTIONS"
+	 * Checks whether HTTP method is OPTIONS. if _SERVER["REQUEST_METHOD"]==="OPTIONS"
 	 *
 	 * @return boolean
 	 */
 	public function isOptions() -> boolean
 	{
-		return this->getMethod() == "OPTIONS";
+		return this->getMethod() === "OPTIONS";
 	}
 
 	/**
@@ -834,6 +839,7 @@ class Request implements RequestInterface, InjectionAwareInterface
 
 		return files;
 	}
+
 	/**
 	 * Returns the available headers in the request
 	 *
@@ -841,24 +847,23 @@ class Request implements RequestInterface, InjectionAwareInterface
 	 */
 	public function getHeaders() -> array
 	{
-		var headers, key, value, parts, pos, part;
+		var name, value, headers, contentHeaders;
 
 		let headers = [];
-		for key, value in _SERVER {
-			if starts_with(key, "HTTP_") {
+		let contentHeaders = ["CONTENT_TYPE": true, "CONTENT_LENGTH": true];
 
-				let key = str_replace("HTTP_", "", key),
-				    parts = explode("_", key),
-				    key = "";
-
-				for pos, part in parts {
-					let parts[pos] = ucfirst(strtolower(part));
-				}
-
-				let key = implode("-", parts),
-					headers[key] = value;
+		for name, value in _SERVER {
+			if starts_with(name, "HTTP_") {
+				let name = ucwords(strtolower(str_replace("_", " ", substr(name, 5)))),
+					name = str_replace(" ", "-", name);
+				let headers[name] = value;
+			} elseif isset(contentHeaders[name]) {
+				let name = ucwords(strtolower(str_replace("_", " ", name))),
+					name = str_replace(" ", "-", name);
+				let headers[name] = value;
 			}
 		}
+
 		return headers;
 	}
 
@@ -885,24 +890,29 @@ class Request implements RequestInterface, InjectionAwareInterface
 	 */
 	protected function _getQualityHeader(string! serverIndex, string! name) -> array
 	{
-		double quality;
-		var returnedParts, part, headerParts, qualityPart;
+		var returnedParts, part, headerParts, headerPart, split;
 
 		let returnedParts = [];
-		for part in preg_split("/,\\s*/", this->getServer(serverIndex)) {
+		for part in preg_split("/,\\s*/", this->getServer(serverIndex), -1, PREG_SPLIT_NO_EMPTY) {
 
-			let headerParts = explode(";", part);
-			if fetch qualityPart, headerParts[1] {
-				let quality = (double) substr(qualityPart, 2);
-			} else {
-				let quality = 1.0;
+			let headerParts = [];
+			for headerPart in preg_split("/\s*;\s*/", trim(part), -1, PREG_SPLIT_NO_EMPTY) {
+				if strpos(headerPart, "=") !== false {
+					let split = explode("=", headerPart, 2);
+					if split[0] === "q" {
+						let headerParts["quality"] = (double) split[1];
+					} else {
+						let headerParts[split[0]] = split[1];
+					}
+				} else {
+					let headerParts[name] = headerPart;
+					let headerParts["quality"] = 1.0;
+				}
 			}
 
-			let returnedParts[] = [
-				name      : headerParts[0],
-				"quality" : quality
-			];
+			let returnedParts[] = headerParts;
 		}
+
 		return returnedParts;
 	}
 
@@ -937,6 +947,29 @@ class Request implements RequestInterface, InjectionAwareInterface
 			let i++;
 		}
 		return selectedName;
+	}
+
+	/**
+	 * Gets content type which request has been made
+	 *
+	 * @return mixed
+	 */
+	public function getContentType()
+	{
+		var contentType;
+
+		if fetch contentType, _SERVER["CONTENT_TYPE"] {
+			return contentType;
+		} else {
+			/**
+			 * @see https://bugs.php.net/bug.php?id=66606
+			 */
+			if fetch contentType, _SERVER["HTTP_CONTENT_TYPE"] {
+				return contentType;
+			}
+		}
+
+		return null;
 	}
 
 	/**

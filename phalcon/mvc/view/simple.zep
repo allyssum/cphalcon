@@ -22,6 +22,7 @@ namespace Phalcon\Mvc\View;
 use Phalcon\Di\Injectable;
 use Phalcon\Mvc\View\Exception;
 use Phalcon\Cache\BackendInterface;
+use Phalcon\Mvc\View\Engine\Php as PhpEngine;
 
 /**
  * Phalcon\Mvc\View\Simple
@@ -31,6 +32,8 @@ use Phalcon\Cache\BackendInterface;
  *<code>
  * $view = new \Phalcon\Mvc\View\Simple();
  * echo $view->render('templates/my-view', array('content' => $html));
+ * //or with filename with extension
+ * echo $view->render('templates/my-view.volt', array('content' => $html));
  *</code>
  *
  */
@@ -47,7 +50,7 @@ class Simple extends Injectable
 
 	protected _engines = false;
 
-	protected _registeredEngines;
+	protected _registeredEngines  { get };
 
 	protected _activeRenderPath;
 
@@ -134,7 +137,7 @@ class Simple extends Injectable
 				 * We use Phalcon\Mvc\View\Engine\Php as default
 				 * Use .phtml as extension for the PHP engine
 				 */
-				let engines[".phtml"] = new \Phalcon\Mvc\View\Engine\Php(this, dependencyInjector);
+				let engines[".phtml"] = new PhpEngine(this, dependencyInjector);
 
 			} else {
 
@@ -220,8 +223,18 @@ class Simple extends Injectable
 		 */
 		for extension, engine in engines {
 
-			let viewEnginePath = viewsDirPath . extension;
-			if file_exists(viewEnginePath) {
+			if file_exists(viewsDirPath . extension) {
+				let viewEnginePath = viewsDirPath . extension;
+			} else {
+				//if passed filename with engine extension
+				if extension && substr(viewsDirPath, -strlen(extension)) == extension && file_exists(viewsDirPath) {
+					let viewEnginePath = viewsDirPath;
+				} else {
+					let viewEnginePath = "";
+				}
+			}
+
+			if viewEnginePath {
 
 				/**
 				 * Call beforeRenderView if there is a events manager available
@@ -690,5 +703,4 @@ class Simple extends Injectable
 		}
 		return null;
 	}
-
 }

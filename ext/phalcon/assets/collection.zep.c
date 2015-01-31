@@ -666,12 +666,7 @@ PHP_METHOD(Phalcon_Assets_Collection, setAttributes) {
 
 	zephir_fetch_params(0, 1, 0, &attributes_param);
 
-	if (unlikely(Z_TYPE_P(attributes_param) != IS_ARRAY)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'attributes' must be an array") TSRMLS_CC);
-		RETURN_NULL();
-	}
-
-		attributes = attributes_param;
+	attributes = attributes_param;
 
 
 
@@ -693,12 +688,7 @@ PHP_METHOD(Phalcon_Assets_Collection, setFilters) {
 
 	zephir_fetch_params(0, 1, 0, &filters_param);
 
-	if (unlikely(Z_TYPE_P(filters_param) != IS_ARRAY)) {
-		zephir_throw_exception_string(spl_ce_InvalidArgumentException, SL("Parameter 'filters' must be an array") TSRMLS_CC);
-		RETURN_NULL();
-	}
-
-		filters = filters_param;
+	filters = filters_param;
 
 
 

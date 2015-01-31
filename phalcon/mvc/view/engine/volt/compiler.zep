@@ -986,7 +986,7 @@ class Compiler implements InjectionAwareInterface
 		 * "sort" calls "sort" method in the engine adapter
 		 */
 		if name == "sort" {
-			return "this->sort(" . arguments . ")";
+			return "$this->sort(" . arguments . ")";
 		}
 
 		/**
@@ -2271,7 +2271,7 @@ class Compiler implements InjectionAwareInterface
 	 * @param boolean extendsMode
 	 * @return string
 	 */
-	final protected function _compileSource(string! viewCode, boolean extendsMode = false) -> string
+	protected function _compileSource(string! viewCode, boolean extendsMode = false) -> string
 	{
 		var currentPath, intermediate, extended,
 			finalCompilation, blocks, extendedBlocks, name, block,

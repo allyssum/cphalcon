@@ -26,7 +26,7 @@ use Phalcon\Mvc\Router\Exception;
  *
  * This class represents every route added to the router
  */
-class Route
+class Route implements RouteInterface
 {
 
 	protected _pattern;
@@ -301,7 +301,7 @@ class Route
 	 * @param string pattern
 	 * @param array paths
 	 */
-	public function reConfigure(string! pattern, paths=null)
+	public function reConfigure(string! pattern, paths = null)
 	{
 		var moduleName, controllerName, actionName,
 			parts, routePaths, realClassName, namespaceName,

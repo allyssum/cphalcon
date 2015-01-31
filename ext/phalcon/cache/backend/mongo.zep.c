@@ -158,10 +158,8 @@ PHP_METHOD(Phalcon_Cache_Backend_Mongo, _getCollection) {
 			}
 			ZEPHIR_INIT_NVAR(mongo);
 			object_init_ex(mongo, zephir_get_internal_ce(SS("mongoclient") TSRMLS_CC));
-			if (zephir_has_constructor(mongo TSRMLS_CC)) {
-				ZEPHIR_CALL_METHOD(NULL, mongo, "__construct", NULL);
-				zephir_check_call_status();
-			}
+			ZEPHIR_CALL_METHOD(NULL, mongo, "__construct", NULL);
+			zephir_check_call_status();
 		}
 		ZEPHIR_OBS_VAR(database);
 		zephir_array_fetch_string(&database, options, SL("db"), PH_NOISY, "phalcon/cache/backend/mongo.zep", 118 TSRMLS_CC);
@@ -432,12 +430,10 @@ PHP_METHOD(Phalcon_Cache_Backend_Mongo, queryKeys) {
 	if (zephir_is_true(prefix)) {
 		ZEPHIR_INIT_VAR(_0);
 		object_init_ex(_0, zephir_get_internal_ce(SS("mongoregex") TSRMLS_CC));
-		if (zephir_has_constructor(_0 TSRMLS_CC)) {
-			ZEPHIR_INIT_VAR(_1);
-			ZEPHIR_CONCAT_SVS(_1, "/^", prefix, "/");
-			ZEPHIR_CALL_METHOD(NULL, _0, "__construct", NULL, _1);
-			zephir_check_call_status();
-		}
+		ZEPHIR_INIT_VAR(_1);
+		ZEPHIR_CONCAT_SVS(_1, "/^", prefix, "/");
+		ZEPHIR_CALL_METHOD(NULL, _0, "__construct", NULL, _1);
+		zephir_check_call_status();
 		zephir_array_update_string(&conditions, SL("key"), &_0, PH_COPY | PH_SEPARATE);
 	}
 	ZEPHIR_INIT_VAR(_2);
@@ -600,7 +596,7 @@ PHP_METHOD(Phalcon_Cache_Backend_Mongo, increment) {
 		return;
 	}
 	ZEPHIR_INIT_VAR(_3);
-	zephir_sub_function(_3, timestamp, ttl TSRMLS_CC);
+	sub_function(_3, timestamp, ttl TSRMLS_CC);
 	if (ZEPHIR_LT(_3, modifiedTime)) {
 		ZEPHIR_OBS_VAR(cachedContent);
 		if (!(zephir_array_isset_string_fetch(&cachedContent, document, SS("data"), 0 TSRMLS_CC))) {
@@ -609,9 +605,9 @@ PHP_METHOD(Phalcon_Cache_Backend_Mongo, increment) {
 		}
 		if (zephir_is_numeric(cachedContent)) {
 			ZEPHIR_INIT_VAR(_4);
-			zephir_add_function(_4, cachedContent, value TSRMLS_CC);
+			zephir_add_function_ex(_4, cachedContent, value TSRMLS_CC);
 			ZEPHIR_INIT_VAR(_5);
-			zephir_add_function(_5, lifetime, timestamp TSRMLS_CC);
+			zephir_add_function_ex(_5, lifetime, timestamp TSRMLS_CC);
 			ZEPHIR_CALL_METHOD(NULL, this_ptr, "save", NULL, prefixedKey, _4, _5);
 			zephir_check_call_status();
 		}
@@ -670,7 +666,7 @@ PHP_METHOD(Phalcon_Cache_Backend_Mongo, decrement) {
 		return;
 	}
 	ZEPHIR_INIT_VAR(_4);
-	zephir_sub_function(_4, timestamp, ttl TSRMLS_CC);
+	sub_function(_4, timestamp, ttl TSRMLS_CC);
 	if (ZEPHIR_LT(_4, modifiedTime) == 1) {
 		ZEPHIR_OBS_VAR(cachedContent);
 		if (!(zephir_array_isset_string_fetch(&cachedContent, document, SS("data"), 0 TSRMLS_CC))) {
@@ -679,9 +675,9 @@ PHP_METHOD(Phalcon_Cache_Backend_Mongo, decrement) {
 		}
 		if (zephir_is_numeric(cachedContent)) {
 			ZEPHIR_INIT_VAR(_5);
-			zephir_sub_function(_5, cachedContent, value TSRMLS_CC);
+			sub_function(_5, cachedContent, value TSRMLS_CC);
 			ZEPHIR_INIT_VAR(_6);
-			zephir_add_function(_6, lifetime, timestamp TSRMLS_CC);
+			zephir_add_function_ex(_6, lifetime, timestamp TSRMLS_CC);
 			ZEPHIR_CALL_METHOD(NULL, this_ptr, "save", NULL, prefixedKey, _5, _6);
 			zephir_check_call_status();
 		}

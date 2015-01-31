@@ -455,7 +455,7 @@ PHP_METHOD(Phalcon_Cache_Backend_Redis, queryKeys) {
 	ZEPHIR_CALL_METHOD(&keys, redis, "smembers", NULL, specialKey);
 	zephir_check_call_status();
 	if (Z_TYPE_P(keys) == IS_ARRAY) {
-		zephir_is_iterable(keys, &_1, &_0, 0, 0, "phalcon/cache/backend/redis.zep", 326);
+		zephir_is_iterable(keys, &_1, &_0, 1, 0, "phalcon/cache/backend/redis.zep", 326);
 		for (
 		  ; zephir_hash_get_current_data_ex(_1, (void**) &_2, &_0) == SUCCESS
 		  ; zephir_hash_move_forward_ex(_1, &_0)
@@ -639,6 +639,7 @@ PHP_METHOD(Phalcon_Cache_Backend_Redis, decrement) {
  */
 PHP_METHOD(Phalcon_Cache_Backend_Redis, flush) {
 
+	zephir_fcall_cache_entry *_3 = NULL, *_4 = NULL;
 	HashTable *_1;
 	HashPosition _0;
 	int ZEPHIR_LAST_CALL_STATUS;
@@ -673,9 +674,9 @@ PHP_METHOD(Phalcon_Cache_Backend_Redis, flush) {
 			ZEPHIR_GET_HVALUE(key, _2);
 			ZEPHIR_INIT_NVAR(lastKey);
 			ZEPHIR_CONCAT_SV(lastKey, "_PHCR", key);
-			ZEPHIR_CALL_METHOD(NULL, redis, "srem", NULL, specialKey, key);
+			ZEPHIR_CALL_METHOD(NULL, redis, "srem", &_3, specialKey, key);
 			zephir_check_call_status();
-			ZEPHIR_CALL_METHOD(NULL, redis, "delete", NULL, lastKey);
+			ZEPHIR_CALL_METHOD(NULL, redis, "delete", &_4, lastKey);
 			zephir_check_call_status();
 		}
 	}

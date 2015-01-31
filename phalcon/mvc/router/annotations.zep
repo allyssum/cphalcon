@@ -19,6 +19,7 @@
 
 namespace Phalcon\Mvc\Router;
 
+use Phalcon\DiInterface;
 use Phalcon\Mvc\Router;
 use Phalcon\Annotations\Annotation;
 use Phalcon\Mvc\Router\Exception;
@@ -103,8 +104,8 @@ class Annotations extends Router
 
 		if !uri {
 			/**
-		 	 * If 'uri' isn't passed as parameter it reads _GET['_url']
-		 	 */
+			 * If 'uri' isn't passed as parameter it reads _GET['_url']
+			 */
 			let realUri = this->getRewriteUri();
 		} else {
 			let realUri = uri;
@@ -128,15 +129,15 @@ class Annotations extends Router
 						 */
 						let prefix = scope[0];
 
-						if typeof prefix == "string" {
-							if starts_with(realUri, prefix) {
+						if !empty prefix {
+							if !starts_with(realUri, prefix) {
 								continue;
 							}
 						}
 
 						if typeof annotationsService != "object" {
 
-							let dependencyInjector = <\Phalcon\DiInterface> this->_dependencyInjector;
+							let dependencyInjector = <DiInterface> this->_dependencyInjector;
 							if typeof dependencyInjector != "object" {
 								throw new Exception("A dependency injection container is required to access the 'annotations' service");
 							}
@@ -340,6 +341,8 @@ class Annotations extends Router
 			 * Add HTTP constraint methods
 			 */
 			if methods !== null {
+				route->via(methods);
+			} else {
 				let methods = annotation->getNamedArgument("methods");
 				if typeof methods == "array" {
 					route->via(methods);
@@ -348,8 +351,6 @@ class Annotations extends Router
 						route->via(methods);
 					}
 				}
-			} else {
-				route->via(methods);
 			}
 
 			/**

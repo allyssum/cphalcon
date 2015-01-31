@@ -169,7 +169,7 @@ class QueryBuilder implements AdapterInterface
 	{
 		var originalBuilder, builder, totalBuilder, totalPages,
 			limit, numberPage, number, query, page, before, items, totalQuery,
-			result, row, rowcount, intTotalPages, next;
+			result, row, rowcount, next;
 
 		let originalBuilder = this->_builder;
 
@@ -239,14 +239,9 @@ class QueryBuilder implements AdapterInterface
 		 */
 		let result = totalQuery->execute(),
 			row = result->getFirst(),
-			rowcount = row->rowcount,
-			totalPages = rowcount / limit;
-
-		let intTotalPages = intval(totalPages);
-		if intTotalPages != totalPages {
-			let totalPages = intTotalPages + 1;
-		}
-
+			rowcount = intval(row->rowcount),
+			totalPages = intval(ceil(rowcount / limit));
+			
 		if numberPage < totalPages {
 			let next = numberPage + 1;
 		} else {
