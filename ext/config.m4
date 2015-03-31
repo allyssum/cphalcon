@@ -604,6 +604,28 @@ registry.c"
 		fi
 	done
 
+	AC_MSG_CHECKING([for libwebsockets.h])
+	for i in /usr /usr/local; do
+		if test -r $i/include/libwebsockets.h; then
+			AC_MSG_RESULT([yes, found in $i])
+
+			LIBWEBSOCKETS_CFLAGS=`pkg-config --cflags libwebsockets`
+			LIBWEBSOCKETS_LDFLAGS=`pkg-config --libs libwebsockets`
+
+			PHP_ADD_INCLUDE($i/include)
+
+			CPPFLAGS="${CPPFLAGS} ${LIBWEBSOCKETS_CFLAGS}"
+			EXTRA_LDFLAGS="${EXTRA_LDFLAGS} ${LIBWEBSOCKETS_LDFLAGS}"
+
+			AC_MSG_RESULT("libwebsockets found")
+
+			AC_DEFINE([PHALCON_USE_LIBWEBSOCKET], [1], [Have libwebsockets support])
+			break
+		else
+			AC_MSG_RESULT([no, found in $i])
+		fi
+	done
+
 	PHP_ADD_MAKEFILE_FRAGMENT([Makefile.frag])
 fi
 
