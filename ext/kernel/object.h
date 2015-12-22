@@ -285,10 +285,6 @@ int phalcon_create_instance_params(zval *return_value, const zval *class_name, z
 /** Create closures */
 int phalcon_create_closure_ex(zval *return_value, zval *this_ptr, zend_class_entry *ce, const char *method_name, zend_uint method_length TSRMLS_DC);
 
-#if PHP_VERSION_ID < 50400
-void object_properties_init(zend_object *object, zend_class_entry *class_type);
-#endif
-
 /** Checks if property access on object */
 int phalcon_check_property_access_quick(zval *object, const char *property_name, zend_uint property_length, ulong hash, int access TSRMLS_DC) PHALCON_ATTR_NONNULL;
 
