@@ -587,7 +587,7 @@ static PATNREPL *php_strtr_array_prepare_repls(int slen, HashTable *pats, zend_l
 
 		switch (zend_hash_get_current_key_ex(pats, &string_key, &string_key_len, &num_key, 0, &hpos)) {
 		case HASH_KEY_IS_LONG:
-			string_key_len = 1 + zend_spprintf(&string_key, 0, "%ld", (long)num_key);
+			string_key_len = 1 + spprintf(&string_key, 0, "%ld", (long)num_key);
 			zend_llist_add_element(*allocs, &string_key);
 			/* break missing intentionally */
 
