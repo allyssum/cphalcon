@@ -424,6 +424,7 @@
 
 #include "scws.h"
 #include "async.h"
+#include "utils/binary.h"
 
 #include "version.h"
 
