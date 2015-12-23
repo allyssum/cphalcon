@@ -57,6 +57,12 @@ typedef struct _phalcon_symbol_table {
 	struct _phalcon_symbol_table *prev;
 } phalcon_symbol_table;
 
+/** DEBUG options */
+typedef struct _phalcon_debug_options {
+	int debug_level;
+	zend_bool enable_debug;
+} phalcon_debug_options;
+
 /** ORM options */
 typedef struct _phalcon_orm_options {
 	HashTable *ast_cache;
@@ -72,6 +78,7 @@ typedef struct _phalcon_orm_options {
 	zend_bool enable_property_method;
 	zend_bool enable_auto_convert;
 	zend_bool allow_update_primary;
+	zend_bool enable_strict;
 } phalcon_orm_options;
 
 /** DB options */
@@ -113,6 +120,9 @@ ZEND_BEGIN_MODULE_GLOBALS(phalcon)
 
 	/** Function cache */
 	HashTable *fcache;
+
+	/** DEBUG */
+	phalcon_debug_options debug;
 
 	/** ORM */
 	phalcon_orm_options orm;

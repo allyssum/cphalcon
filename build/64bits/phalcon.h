@@ -1985,6 +1985,18 @@ zend_class_entry *phalcon_di_injectable_ce;
 
 PHALCON_INIT_CLASS(Phalcon_DI_Injectable);
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_di_injectable_fireevent, 0, 0, 1)
+	ZEND_ARG_INFO(0, eventName)
+	ZEND_ARG_INFO(1, data)
+	ZEND_ARG_INFO(0, cancelable)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_di_injectable_fireeventcancel, 0, 0, 1)
+	ZEND_ARG_INFO(0, eventName)
+	ZEND_ARG_INFO(1, data)
+	ZEND_ARG_INFO(0, cancelable)
+ZEND_END_ARG_INFO()
+
 #endif /* PHALCON_DI_INJECTABLE_H */
 
 
@@ -2866,6 +2878,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_http_requestinterface_hasserver, 0, 0, 1)
 	ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_http_requestinterface_hasheader, 0, 0, 1)
+	ZEND_ARG_INFO(0, header)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_http_requestinterface_getheader, 0, 0, 1)
 	ZEND_ARG_INFO(0, header)
 ZEND_END_ARG_INFO()
@@ -2967,6 +2983,10 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_http_responseinterface_setexpires, 0, 0, 1)
 	ZEND_ARG_INFO(0, datetime)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_http_responseinterface_setcache, 0, 0, 1)
+	ZEND_ARG_INFO(0, minutes)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_http_responseinterface_setcontenttype, 0, 0, 1)
@@ -3556,7 +3576,7 @@ PHALCON_INIT_CLASS(Phalcon_Image_Exception);
 
 #include "php_phalcon.h"
 
-#include "ext/standard/php_smart_str.h"
+#include <ext/standard/php_smart_str.h>
 
 #define PHALCON_AMF3_CLIENT_SUCCESS_METHOD			"/onResult"
 #define PHALCON_AMF3_CLIENT_FAILURE_METHOD			"/onStatus"
@@ -3599,7 +3619,7 @@ PHALCON_INIT_CLASS(Phalcon_Image_Exception);
 	if (!(A)) { \
 		ALLOC_INIT_ZVAL((A)); \
 	} else { \
-		zval_dtor((A)); \
+		phalcon_dtor((A)); \
 		ZVAL_NULL((A)); \
 	}
 
@@ -4098,14 +4118,6 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_collectioninterface_cloneresult, 0, 0
 	ZEND_ARG_INFO(0, document)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_collectioninterface_fireevent, 0, 0, 1)
-	ZEND_ARG_INFO(0, eventName)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_collectioninterface_fireeventcancel, 0, 0, 1)
-	ZEND_ARG_INFO(0, eventName)
-ZEND_END_ARG_INFO()
-
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_collectioninterface_appendmessage, 0, 0, 1)
 	ZEND_ARG_INFO(0, message)
 	ZEND_ARG_INFO(0, field)
@@ -4596,15 +4608,6 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_modelinterface_average, 0, 0, 0)
 	ZEND_ARG_INFO(0, parameters)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_modelinterface_fireevent, 0, 0, 1)
-	ZEND_ARG_INFO(0, eventName)
-	ZEND_ARG_INFO(1, data)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_modelinterface_fireeventcancel, 0, 0, 1)
-	ZEND_ARG_INFO(0, eventName)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_modelinterface_appendmessage, 0, 0, 1)
@@ -6867,6 +6870,18 @@ PHALCON_INIT_CLASS(Phalcon_Security);
 #endif /* PHALCON_SECURITY_H */
 
 
+#ifndef PHALCON_SECURITY_RANDOM_H
+#define PHALCON_SECURITY_RANDOM_H
+
+#include "php_phalcon.h"
+
+zend_class_entry *phalcon_security_random_ce;
+
+PHALCON_INIT_CLASS(Phalcon_Security_Random);
+
+#endif /* PHALCON_SECURITY_RANDOM_H */
+
+
 #ifndef PHALCON_SECURITY_EXCEPTION_H
 #define PHALCON_SECURITY_EXCEPTION_H
 
@@ -7502,8 +7517,8 @@ PHALCON_INIT_CLASS(Phalcon_Chart_Captcha);
 
 
 
-#ifndef PHALCON_CHART_EXCEPTION
-#define PHALCON_CHART_EXCEPTION
+#ifndef PHALCON_CHART_EXCEPTION_H
+#define PHALCON_CHART_EXCEPTION_H
 
 #include "php_phalcon.h"
 
@@ -7511,7 +7526,7 @@ zend_class_entry *phalcon_chart_exception_ce;
 
 PHALCON_INIT_CLASS(Phalcon_Chart_Exception);
 
-#endif /* PHALCON_CHART_EXCEPTION */
+#endif /* PHALCON_CHART_EXCEPTION_H */
 
 
 
