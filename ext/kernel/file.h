@@ -43,7 +43,7 @@ void phalcon_fwrite(zval *return_value, zval *stream_zval, zval *data TSRMLS_DC)
 int phalcon_feof(zval *stream_zval TSRMLS_DC);
 int phalcon_fclose(zval *stream_zval TSRMLS_DC);
 
-int phalcon_is_absolutepath(zval *filename TSRMLS_DC);
+int phalcon_is_absolutepath(zval *path TSRMLS_DC);
 
 #ifdef TSRM_WIN32
 #define PHALCON_DIRECTORY_SEPARATOR "\\"
