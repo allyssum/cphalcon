@@ -578,3 +578,12 @@ int phalcon_fclose(zval *stream_zval TSRMLS_DC)
 
 	return 1;
 }
+
+int phalcon_is_absolutepath(zval *path TSRMLS_DC)
+{
+#ifdef PHP_WIN32
+	return Z_STRLEN_P(path) >= 3 && Z_STRVAL_P(path)[1] == ':' && Z_STRVAL_P(path)[2] == '\\';
+#else
+	return Z_STRLEN_P(path) >= 1 && Z_STRVAL_P(path)[0] == '/';
+#endif
+}

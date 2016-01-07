@@ -1010,14 +1010,14 @@ PHP_METHOD(Phalcon_Mvc_View, _engineRender){
 
 	zval *engines, *view_path, *silence, *must_clean, *absolute_path = NULL, *debug_message = NULL;
 	zval *cache = NULL, *not_exists = NULL, *views_dir, *base_path;
-	zval *path = NULL, *views_dir_paths, *views_dir_path = NULL, *render_level, *cache_level, *cache_mode;
+	zval *path = NULL, *dir = NULL, *views_dir_paths, *views_dir_path = NULL, *render_level, *cache_level, *cache_mode;
 	zval *key = NULL, *lifetime = NULL, *view_options;
 	zval *cache_options, *cached_view = NULL;
 	zval *view_params, *events_manager, *engine = NULL;
 	zval *extension = NULL, *view_engine_path = NULL, *event_name = NULL;
 	zval *status = NULL, *exception_message;
-	HashTable *ah0, *ah1, *ah2;
-	HashPosition hp0, hp1, hp2;
+	HashTable *ah0, *ah01, *ah1, *ah2;
+	HashPosition hp0, hp01, hp1, hp2;
 	zval **hd;
 
 	PHALCON_MM_GROW();
@@ -1075,21 +1075,45 @@ PHP_METHOD(Phalcon_Mvc_View, _engineRender){
 
 		if (Z_TYPE_P(base_path) == IS_ARRAY) {
 			phalcon_is_iterable(base_path, &ah0, &hp0, 0, 0);
-
 			while (zend_hash_get_current_data_ex(ah0, (void**) &hd, &hp0) == SUCCESS) {
-
 				PHALCON_GET_HVALUE(path);
 
-				PHALCON_INIT_NVAR(views_dir_path);
-				PHALCON_CONCAT_VVV(views_dir_path, path, views_dir, view_path);
-				phalcon_array_append(&views_dir_paths, views_dir_path, PH_COPY);
+				if (Z_TYPE_P(views_dir) == IS_ARRAY) {
+					phalcon_is_iterable(views_dir, &ah01, &hp01, 0, 0);
+					while (zend_hash_get_current_data_ex(ah01, (void**) &hd, &hp01) == SUCCESS) {
+						PHALCON_GET_HVALUE(dir);
+
+						PHALCON_INIT_NVAR(views_dir_path);
+						PHALCON_CONCAT_VVV(views_dir_path, path, dir, view_path);
+						phalcon_array_append(&views_dir_paths, views_dir_path, PH_COPY);
+
+						zend_hash_move_forward_ex(ah01, &hp01);
+					}
+				} else {
+					PHALCON_INIT_NVAR(views_dir_path);
+					PHALCON_CONCAT_VVV(views_dir_path, path, views_dir, view_path);
+					phalcon_array_append(&views_dir_paths, views_dir_path, PH_COPY);
+				}
 
 				zend_hash_move_forward_ex(ah0, &hp0);
 			}
 		} else {
-			PHALCON_INIT_VAR(views_dir_path);
-			PHALCON_CONCAT_VVV(views_dir_path, base_path, views_dir, view_path);
-			phalcon_array_append(&views_dir_paths, views_dir_path, PH_COPY);
+			if (Z_TYPE_P(views_dir) == IS_ARRAY) {
+					phalcon_is_iterable(views_dir, &ah01, &hp01, 0, 0);
+					while (zend_hash_get_current_data_ex(ah01, (void**) &hd, &hp01) == SUCCESS) {
+						PHALCON_GET_HVALUE(dir);
+
+						PHALCON_INIT_NVAR(views_dir_path);
+						PHALCON_CONCAT_VVV(views_dir_path, base_path, dir, view_path);
+						phalcon_array_append(&views_dir_paths, views_dir_path, PH_COPY);
+
+						zend_hash_move_forward_ex(ah01, &hp01);
+					}
+			} else {
+				PHALCON_INIT_VAR(views_dir_path);
+				PHALCON_CONCAT_VVV(views_dir_path, base_path, views_dir, view_path);
+				phalcon_array_append(&views_dir_paths, views_dir_path, PH_COPY);
+			}
 		}
 	}
 
