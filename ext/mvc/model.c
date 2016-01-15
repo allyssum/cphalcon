@@ -1735,7 +1735,7 @@ PHP_METHOD(Phalcon_Mvc_Model, findFirst){
 		object_init_ex(manager, phalcon_mvc_model_manager_ce);
 	}
 
-	PHALCON_CALL_METHOD(&model, manager, "load", model_name);
+	PHALCON_CALL_METHOD(&model, manager, "load", model_name, PHALCON_GLOBAL(z_true));
 
 	if (Z_TYPE_P(parameters) != IS_ARRAY) { 
 
@@ -1816,7 +1816,7 @@ PHP_METHOD(Phalcon_Mvc_Model, findFirst){
 
 		RETURN_CTOR(result);
 	} else if (zend_is_true(auto_create)) {
-		PHALCON_CALL_METHOD(&return_value, manager, "load", model_name, PHALCON_GLOBAL(z_true))
+		RETURN_CTOR(model);
 	}
 
 	RETURN_MM_FALSE;
