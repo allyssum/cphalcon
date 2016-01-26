@@ -1167,24 +1167,6 @@ PHP_METHOD(Phalcon_Mvc_View, _engineRender){
 			phalcon_update_property_this(this_ptr, SL("_content"), cached_view TSRMLS_CC);
 			RETURN_MM_NULL();
 		}
-
-		/** 
-		 * If a cache key is not set we create one using a md5
-		 */
-		if (Z_TYPE_P(key) == IS_NULL) {
-			PHALCON_INIT_NVAR(key);
-			phalcon_md5(key, view_path);
-		}
-
-		/** 
-		 * We start the cache using the key set
-		 */
-		phalcon_ob_clean(TSRMLS_C);
-		PHALCON_CALL_METHOD(&cached_view, cache, "start", key, lifetime);
-		if (Z_TYPE_P(cached_view) != IS_NULL) {
-			phalcon_update_property_this(this_ptr, SL("_content"), cached_view TSRMLS_CC);
-			RETURN_MM_NULL();
-		}
 	}
 
 	if (unlikely(PHALCON_GLOBAL(debug).enable_debug)) {
