@@ -281,16 +281,6 @@ PHP_METHOD(Phalcon_Mvc_Model_MetaData_Strategy_Annotations, getMetaData){
 			phalcon_array_update_zval(&field_default_values, real_property, feature, PH_COPY);
 		}
 
-		PHALCON_CALL_METHOD(&feature, column_annotation, "getargument", column_default_value);
-		if (!PHALCON_IS_EMPTY(feature)) {
-			phalcon_array_update_zval(&field_default_values, property, feature, PH_COPY);
-		}
-
-		PHALCON_CALL_METHOD(&feature, column_annotation, "getargument", column_default_value);
-		if (!PHALCON_IS_EMPTY(feature)) {
-			phalcon_array_update_zval(&field_default_values, property, feature, PH_COPY);
-		}
-
 		/** 
 		 * All columns marked with the 'Primary' annotation are considered primary keys
 		 */
