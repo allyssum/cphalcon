@@ -106,7 +106,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_Json, validate){
 
 	PHALCON_INIT_VAR(invalid);
 	ZVAL_BOOL(invalid, 0);
-	
+
 	PHALCON_CALL_METHOD(&value, record, "readattribute", field_name);
 
 	PHALCON_INIT_VAR(assoc);
@@ -150,7 +150,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_Json, validate){
 		 */
 		PHALCON_INIT_NVAR(option);
 		PHALCON_ZVAL_MAYBE_INTERNED_STRING(option, phalcon_interned_message);
-	
+
 		PHALCON_CALL_METHOD(&message, this_ptr, "getoption", option);
 		if (!zend_is_true(message)) {
 			PHALCON_INIT_NVAR(message);

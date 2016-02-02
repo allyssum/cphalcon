@@ -92,34 +92,34 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_PresenceOf, validate){
 	PHALCON_MM_GROW();
 
 	phalcon_fetch_params(1, 1, 0, &record);
-	
+
 	PHALCON_INIT_VAR(option);
 	ZVAL_STRING(option, "field", 1);
-	
+
 	PHALCON_CALL_METHOD(&field_name, this_ptr, "getoption", option);
 	if (Z_TYPE_P(field_name) != IS_STRING) {
 		PHALCON_THROW_EXCEPTION_STR(phalcon_mvc_model_exception_ce, "Field name must be a string");
 		return;
 	}
-	
+
 	/** 
 	 * A value is null when it is identical to null or a empty string
 	 */
 	PHALCON_CALL_METHOD(&value, record, "readattribute", field_name);
 	if (PHALCON_IS_EMPTY(value)) {
-	
+
 		/** 
 		 * Check if the developer has defined a custom message
 		 */
 		PHALCON_INIT_NVAR(option);
 		PHALCON_ZVAL_MAYBE_INTERNED_STRING(option, phalcon_interned_message);
-	
+
 		PHALCON_CALL_METHOD(&message, this_ptr, "getoption", option);
 		if (!zend_is_true(message)) {
 			PHALCON_INIT_NVAR(message);
 			PHALCON_CONCAT_SVS(message, "'", field_name, "' is required");
 		}
-	
+
 		PHALCON_INIT_VAR(type);
 		ZVAL_STRING(type, "PresenceOf", 1);
 
@@ -140,7 +140,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_PresenceOf, validate){
 		PHALCON_CALL_METHOD(NULL, this_ptr, "appendmessage", message, field_name, type, code);
 		RETURN_MM_FALSE;
 	}
-	
+
 	RETURN_MM_TRUE;
 }
 

@@ -113,42 +113,28 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_Url, validate){
 	if (allow_empty && zend_is_true(allow_empty) && PHALCON_IS_EMPTY(value)) {
 		RETURN_MM_TRUE;
 	}
-	
-	/*
-	 * Allow empty
-	 */
-	PHALCON_INIT_NVAR(option);
-	ZVAL_STRING(option, "allowEmpty", 1);
-
-	PHALCON_CALL_METHOD(&allow_empty, this_ptr, "getoption", option);
-
-	if (allow_empty && zend_is_true(allow_empty)) {
-		if (PHALCON_IS_EMPTY(value)) {
-			RETURN_MM_TRUE;
-		}
-	}
 
 	PHALCON_INIT_VAR(flag);
 	ZVAL_LONG(flag, 273);
-	
+
 	/** 
 	 * Filters the format using FILTER_VALIDATE_URL
 	 */
 	PHALCON_CALL_FUNCTION(&is_valid, "filter_var", value, flag);
 	if (!zend_is_true(is_valid)) {
-	
+
 		/** 
 		 * Check if the developer has defined a custom message
 		 */
 		PHALCON_INIT_NVAR(option);
 		PHALCON_ZVAL_MAYBE_INTERNED_STRING(option, phalcon_interned_message);
-	
+
 		PHALCON_CALL_METHOD(&message, this_ptr, "getoption", option);
 		if (!zend_is_true(message)) {
 			PHALCON_INIT_NVAR(message);
 			PHALCON_CONCAT_SVS(message, "'", field, "' does not have a valid url format");
 		}
-	
+
 		PHALCON_INIT_VAR(type);
 		ZVAL_STRING(type, "Url", 1);
 
@@ -169,6 +155,6 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_Url, validate){
 		PHALCON_CALL_METHOD(NULL, this_ptr, "appendmessage", message, field, type, code);
 		RETURN_MM_FALSE;
 	}
-	
+
 	RETURN_MM_TRUE;
 }

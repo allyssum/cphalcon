@@ -94,21 +94,21 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_Email, validate){
 	PHALCON_MM_GROW();
 
 	phalcon_fetch_params(1, 1, 0, &record);
-	
+
 	PHALCON_INIT_VAR(option);
 	ZVAL_STRING(option, "field", 1);
-	
+
 	PHALCON_CALL_METHOD(&field_name, this_ptr, "getoption", option);
 	if (Z_TYPE_P(field_name) != IS_STRING) {
 		PHALCON_THROW_EXCEPTION_STR(phalcon_mvc_model_exception_ce, "Field name must be a string");
 		return;
 	}
-	
+
 	PHALCON_INIT_VAR(regs);
-	
+
 	PHALCON_INIT_VAR(invalid);
 	ZVAL_BOOL(invalid, 0);
-	
+
 	PHALCON_CALL_METHOD(&value, record, "readattribute", field_name);
 
 	/*
@@ -121,54 +121,40 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_Email, validate){
 	if (allow_empty && zend_is_true(allow_empty) && PHALCON_IS_EMPTY(value)) {
 		RETURN_MM_TRUE;
 	}
-	
-	/*
-	 * Allow empty
-	 */
-	PHALCON_INIT_NVAR(option);
-	ZVAL_STRING(option, "allowEmpty", 1);
 
-	PHALCON_CALL_METHOD(&allow_empty, this_ptr, "getoption", option);
-
-	if (allow_empty && zend_is_true(allow_empty)) {
-		if (PHALCON_IS_EMPTY(value)) {
-			RETURN_MM_TRUE;
-		}
-	}
-	
 	/** 
 	 * We check if the email has a valid format using a regular expression
 	 */
 	PHALCON_INIT_VAR(pattern);
 	ZVAL_STRING(pattern, "/^([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x22)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x22))*\\x40([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d))*$/", 1);
-	
+
 	PHALCON_INIT_VAR(match_pattern);
 	RETURN_MM_ON_FAILURE(phalcon_preg_match(match_pattern, pattern, value, regs TSRMLS_CC));
-	
+
 	if (zend_is_true(match_pattern)) {
 		PHALCON_OBS_VAR(match_zero);
 		phalcon_array_fetch_long(&match_zero, regs, 0, PH_NOISY);
-	
+
 		is_not_equal_function(invalid, match_zero, value TSRMLS_CC);
 	} else {
 		PHALCON_INIT_NVAR(invalid);
 		ZVAL_BOOL(invalid, 1);
 	}
-	
+
 	if (PHALCON_IS_TRUE(invalid)) {
-	
+
 		/** 
 		 * Check if the developer has defined a custom message
 		 */
 		PHALCON_INIT_NVAR(option);
 		PHALCON_ZVAL_MAYBE_INTERNED_STRING(option, phalcon_interned_message);
-	
+
 		PHALCON_CALL_METHOD(&message, this_ptr, "getoption", option);
 		if (!zend_is_true(message)) {
 			PHALCON_INIT_NVAR(message);
 			PHALCON_CONCAT_SVS(message, "Value of field '", field_name, "' must have a valid e-mail format");
 		}
-	
+
 		PHALCON_INIT_VAR(type);
 		ZVAL_STRING(type, "Email", 1);
 
@@ -189,7 +175,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Validator_Email, validate){
 		PHALCON_CALL_METHOD(NULL, this_ptr, "appendmessage", message, field_name, type, code);
 		RETURN_MM_FALSE;
 	}
-	
+
 	RETURN_MM_TRUE;
 }
 
