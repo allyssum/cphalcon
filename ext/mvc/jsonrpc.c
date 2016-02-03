@@ -340,9 +340,6 @@ PHP_METHOD(Phalcon_Mvc_JsonRpc, handle){
 		
 		/* Load module config */
 		PHALCON_CALL_METHOD(&module_name, router, "getmodulename");
-
-		/* Load module config */
-		PHALCON_CALL_METHOD(&module_name, router, "getmodulename");
 		
 		/* If the router doesn't return a valid module we use the default module */
 		if (!zend_is_true(module_name)) {
