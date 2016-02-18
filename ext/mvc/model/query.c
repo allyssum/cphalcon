@@ -4920,6 +4920,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Query, _executeUpdate){
 		phalcon_is_iterable(fields, &ah0, &hp0, 0, 0);
 
 		while (zend_hash_get_current_data_ex(ah0, (void**) &hd, &hp0) == SUCCESS) {
+			zval *temp_expr = NULL, *temp_type = NULL;
 
 			PHALCON_GET_HKEY(number, ah0, hp0);
 			PHALCON_GET_HVALUE(field);
@@ -4941,7 +4942,61 @@ PHP_METHOD(Phalcon_Mvc_Model_Query, _executeUpdate){
 			phalcon_array_fetch_string(&expr_value, value, SL("value"), PH_NOISY);
 
 			switch (phalcon_get_intval(type)) {
+				case PHQL_T_ADD: // 43
+					if (Z_TYPE_P(bind_params) != IS_ARRAY) {
+						break;
+					}
 
+					PHALCON_OBS_NVAR(temp_expr);
+					phalcon_array_fetch_string(&temp_expr, expr_value, ISL(left), PH_NOISY);
+
+					PHALCON_OBS_NVAR(temp_type);
+					phalcon_array_fetch_string(&temp_type, temp_expr, ISL(type), PH_NOISY);
+
+					if (PHALCON_IS_STRING(temp_type, "placeholder")) {
+						PHALCON_OBS_NVAR(update_expr);
+						phalcon_array_fetch_string(&update_expr, temp_expr, SL("value"), PH_NOISY);
+
+						PHALCON_INIT_NVAR(wildcard);
+						phalcon_fast_str_replace(wildcard, double_colon, empty_string, update_expr);
+						if (phalcon_array_isset(bind_params, wildcard)) {
+							PHALCON_OBS_NVAR(update_value);
+							phalcon_array_fetch(&update_value, bind_params, wildcard, PH_NOISY);
+							phalcon_array_unset(&select_bind_params, wildcard, PH_COPY);
+							phalcon_array_unset(&select_bind_types, wildcard, PH_COPY);
+						} else {
+							PHALCON_INIT_NVAR(exception_message);
+							PHALCON_CONCAT_SVS(exception_message, "Bound parameter '", wildcard, "' cannot be replaced because it's not in the placeholders list");
+							PHALCON_THROW_EXCEPTION_ZVAL(phalcon_mvc_model_exception_ce, exception_message);
+							return;
+						}
+					}
+
+					PHALCON_OBS_NVAR(temp_expr);
+					phalcon_array_fetch_string(&temp_expr, expr_value, ISL(right), PH_NOISY);
+
+					PHALCON_OBS_NVAR(temp_type);
+					phalcon_array_fetch_string(&temp_type, temp_expr, ISL(type), PH_NOISY);
+
+					if (PHALCON_IS_STRING(temp_type, "placeholder")) {
+						PHALCON_OBS_NVAR(update_expr);
+						phalcon_array_fetch_string(&update_expr, temp_expr, SL("value"), PH_NOISY);
+
+						PHALCON_INIT_NVAR(wildcard);
+						phalcon_fast_str_replace(wildcard, double_colon, empty_string, update_expr);
+						if (phalcon_array_isset(bind_params, wildcard)) {
+							PHALCON_OBS_NVAR(update_value);
+							phalcon_array_fetch(&update_value, bind_params, wildcard, PH_NOISY);
+							phalcon_array_unset(&select_bind_params, wildcard, PH_COPY);
+							phalcon_array_unset(&select_bind_types, wildcard, PH_COPY);
+						} else {
+							PHALCON_INIT_NVAR(exception_message);
+							PHALCON_CONCAT_SVS(exception_message, "Bound parameter '", wildcard, "' cannot be replaced because it's not in the placeholders list");
+							PHALCON_THROW_EXCEPTION_ZVAL(phalcon_mvc_model_exception_ce, exception_message);
+							return;
+						}
+					}
+					break;
 				case PHQL_T_STRING:
 				case PHQL_T_DOUBLE:
 				case PHQL_T_INTEGER:
