@@ -60,6 +60,7 @@ PHALCON_INIT_CLASS(Phalcon_Db_RawValue){
 	PHALCON_REGISTER_CLASS(Phalcon\\Db, RawValue, db_rawvalue, phalcon_db_rawvalue_method_entry, 0);
 
 	zend_declare_property_null(phalcon_db_rawvalue_ce, SL("_value"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_db_rawvalue_ce, SL("_bindParams"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	return SUCCESS;
 }
@@ -71,12 +72,15 @@ PHALCON_INIT_CLASS(Phalcon_Db_RawValue){
  */
 PHP_METHOD(Phalcon_Db_RawValue, __construct){
 
-	zval *value;
+	zval *value, *bind_params = NULL;
 
-	phalcon_fetch_params(0, 1, 0, &value);
+	phalcon_fetch_params(0, 1, 1, &value, &bind_params);
 	
 	phalcon_update_property_this(this_ptr, SL("_value"), value TSRMLS_CC);
-	
+
+	if (bind_params) {
+		phalcon_update_property_this(this_ptr, SL("_bindParams"), bind_params TSRMLS_CC);
+	}
 }
 
 /**
@@ -88,6 +92,17 @@ PHP_METHOD(Phalcon_Db_RawValue, getValue){
 
 
 	RETURN_MEMBER(this_ptr, "_value");
+}
+
+/**
+ * Returns internal raw bind params
+ *
+ * @return string
+ */
+PHP_METHOD(Phalcon_Db_RawValue, getBindParams){
+
+
+	RETURN_MEMBER(this_ptr, "_bindParams");
 }
 
 /**
