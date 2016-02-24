@@ -134,6 +134,8 @@ PHP_METHOD(Phalcon_Http_Response_Cookies, __construct){
 	if (http_only && Z_TYPE_P(http_only) != IS_NULL) {
 		phalcon_update_property_this(this_ptr, SL("_httpOnly"), http_only TSRMLS_CC);
 	}
+
+	phalcon_update_property_empty_array(this_ptr, SL("_cookies") TSRMLS_CC);
 }
 
 /**
@@ -454,12 +456,6 @@ PHP_METHOD(Phalcon_Http_Response_Cookies, send){
  */
 PHP_METHOD(Phalcon_Http_Response_Cookies, reset){
 
-	zval *empty_array;
-
-	PHALCON_MM_GROW();
-
-	PHALCON_INIT_VAR(empty_array);
-	array_init(empty_array);
-	phalcon_update_property_this(this_ptr, SL("_cookies"), empty_array TSRMLS_CC);
-	RETURN_THIS();
+	phalcon_update_property_empty_array(this_ptr, SL("_cookies") TSRMLS_CC);
+	RETURN_THISW();
 }
