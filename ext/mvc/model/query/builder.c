@@ -1434,18 +1434,17 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getGroupBy){
  */
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 
-	zval *dependency_injector = NULL, *models, *conditions = NULL, *distinct;
-	zval *model = NULL, *model_instance, *phql, *columns;
-	zval *selected_columns = NULL, *column = NULL, *column_alias = NULL;
+	zval *dependency_injector = NULL, *models, *conditions = NULL, *distinct, *model = NULL, *model_instance, *phql, *columns;
+	zval *selected_columns = NULL, *column = NULL, *column_alias = NULL, *escaped_item = NULL;
 	zval *aliased_column = NULL, *joined_columns = NULL, *model_column_alias = NULL;
 	zval *selected_column = NULL, *selected_models, *model_alias = NULL;
 	zval *selected_model = NULL, *joined_models, *joins;
 	zval *join = NULL, *join_model = NULL, *join_conditions = NULL, *join_alias = NULL;
 	zval *join_type = NULL, *group, *group_items, *group_item = NULL;
-	zval *escaped_item = NULL, *joined_items = NULL, *having, *order;
-	zval *order_items, *order_item = NULL, *limit, *number, *force_index, *for_update;
-	HashTable *ah, *ah0, *ah1, *ah2, *ah3, *ah4, *ah5;
-	HashPosition hp, hp0, hp1, hp2, hp3, hp4, hp5;
+	zval *joined_items = NULL, *having, *order;
+	zval *order_items, *order_item = NULL, *limit, *number, *force_index, *force_index_items, *force_index_item = NULL, *for_update;
+	HashTable *ah, *ah0, *ah1, *ah2, *ah3, *ah4, *ah5, *ah6;
+	HashPosition hp, hp0, hp1, hp2, hp3, hp4, hp5, hp6;
 	zval **hd;
 	zend_class_entry *ce0;
 
@@ -1708,7 +1707,6 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 			phalcon_is_iterable(group, &ah4, &hp4, 0, 0);
 
 			while (zend_hash_get_current_data_ex(ah4, (void**) &hd, &hp4) == SUCCESS) {
-
 				PHALCON_GET_HVALUE(group_item);
 
 				if (phalcon_is_numeric(group_item)) {
@@ -1773,7 +1771,6 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 			phalcon_is_iterable(order, &ah5, &hp5, 0, 0);
 
 			while (zend_hash_get_current_data_ex(ah5, (void**) &hd, &hp5) == SUCCESS) {
-
 				PHALCON_GET_HVALUE(order_item);
 
 				if (phalcon_is_numeric(order_item)) {
@@ -1828,7 +1825,38 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 
 	force_index = phalcon_fetch_nproperty_this(this_ptr, SL("_forceIndex"), PH_NOISY TSRMLS_CC);
 	if (Z_TYPE_P(force_index) != IS_NULL) {
-		PHALCON_SCONCAT_SVS(phql, " FORCE INDEX(", force_index, ")");
+		if (Z_TYPE_P(force_index) == IS_ARRAY) {
+
+			PHALCON_INIT_VAR(force_index_items);
+			array_init(force_index_items);
+
+			phalcon_is_iterable(force_index, &ah6, &hp6, 0, 0);
+
+			while (zend_hash_get_current_data_ex(ah6, (void**) &hd, &hp6) == SUCCESS) {
+				PHALCON_GET_HVALUE(force_index_item);
+
+				if (phalcon_is_numeric(force_index_item)) {
+					phalcon_array_append(&force_index_items, force_index_item, PH_COPY);
+				} else {
+					if (phalcon_memnstr_str(force_index_item, SL("."))) {
+						phalcon_array_append(&force_index_items, force_index_item, PH_COPY);
+					} else {
+						PHALCON_INIT_NVAR(escaped_item);
+						PHALCON_CONCAT_SVS(escaped_item, "[", force_index_item, "]");
+						phalcon_array_append(&force_index_items, escaped_item, PH_COPY);
+					}
+				}
+
+				zend_hash_move_forward_ex(ah5, &hp5);
+			}
+
+			PHALCON_INIT_NVAR(joined_items);
+			phalcon_fast_join_str(joined_items, SL(", "), force_index_items TSRMLS_CC);
+
+			PHALCON_SCONCAT_SVS(phql, " FORCE INDEX(", joined_items, ")");
+		} else {
+			PHALCON_SCONCAT_SVS(phql, " FORCE INDEX(", force_index, ")");
+		}
 	}
 
 	/** 
