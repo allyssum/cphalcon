@@ -49,6 +49,7 @@ PHP_METHOD(Phalcon_Db_Dialect, getColumnList);
 PHP_METHOD(Phalcon_Db_Dialect, getSqlExpression);
 PHP_METHOD(Phalcon_Db_Dialect, getSqlExpressionCase);
 PHP_METHOD(Phalcon_Db_Dialect, getSqlExpressionFunctionCall);
+PHP_METHOD(Phalcon_Db_Dialect, getSqlExpressionForceIndex);
 PHP_METHOD(Phalcon_Db_Dialect, getSqlTable);
 PHP_METHOD(Phalcon_Db_Dialect, select);
 PHP_METHOD(Phalcon_Db_Dialect, insert);
@@ -97,6 +98,7 @@ static const zend_function_entry phalcon_db_dialect_method_entry[] = {
 	PHP_ME(Phalcon_Db_Dialect, getSqlExpression, arginfo_phalcon_db_dialect_getsqlexpression, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Db_Dialect, getSqlExpressionCase, arginfo_phalcon_db_dialect_getsqlexpressioncase, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Db_Dialect, getSqlExpressionFunctionCall, arginfo_phalcon_db_dialect_getsqlexpressionfunctioncall, ZEND_ACC_PUBLIC)
+	PHP_ME(Phalcon_Db_Dialect, getSqlExpressionForceIndex, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Db_Dialect, getSqlTable, arginfo_phalcon_db_dialect_getsqltable, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Db_Dialect, select, arginfo_phalcon_db_dialectinterface_select, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Db_Dialect, insert, arginfo_phalcon_db_dialectinterface_insert, ZEND_ACC_PUBLIC)
@@ -684,6 +686,52 @@ PHP_METHOD(Phalcon_Db_Dialect, getSqlExpressionFunctionCall){
 	RETURN_MM();
 }
 
+PHP_METHOD(Phalcon_Db_Dialect, getSqlExpressionForceIndex){
+
+	zval *expression, *name, *sql_arguments, *arguments, *argument = NULL, *argument_name = NULL, *arguments_joined;
+	HashTable *ah0;
+	HashPosition hp0;
+	zval **hd;
+
+	PHALCON_MM_GROW();
+
+	phalcon_fetch_params(1, 1, 0, &expression);
+
+	PHALCON_OBS_VAR(name);
+	phalcon_array_fetch_string(&name, expression, SL("name"), PH_NOISY);
+
+	PHALCON_INIT_VAR(sql_arguments);
+	array_init(sql_arguments);
+	if (phalcon_array_isset_string(expression, SS("arguments"))) {
+
+		PHALCON_OBS_VAR(arguments);
+		phalcon_array_fetch_string(&arguments, expression, SL("arguments"), PH_NOISY);
+
+		phalcon_is_iterable(arguments, &ah0, &hp0, 0, 0);
+
+		while (zend_hash_get_current_data_ex(ah0, (void**) &hd, &hp0) == SUCCESS) {
+
+			PHALCON_GET_HVALUE(argument);
+
+			PHALCON_OBS_NVAR(argument_name);
+			phalcon_array_fetch_string(&argument_name, argument, SL("name"), PH_NOISY);
+			phalcon_array_append(&sql_arguments, argument_name, PH_COPY);
+
+			zend_hash_move_forward_ex(ah0, &hp0);
+		}
+
+		PHALCON_INIT_VAR(arguments_joined);
+		phalcon_fast_join_str(arguments_joined, SL(", "), sql_arguments TSRMLS_CC);
+	
+		PHALCON_CONCAT_VSVS(return_value, name, "(", arguments_joined, ")");
+
+		RETURN_MM();
+	}
+
+	PHALCON_CONCAT_VS(return_value, name, "()");
+	RETURN_MM();
+}
+
 /**
  * Transform an intermediate representation for a schema/table into a database system valid expression
  *
@@ -779,22 +827,14 @@ PHP_METHOD(Phalcon_Db_Dialect, getSqlTable){
  */
 PHP_METHOD(Phalcon_Db_Dialect, select){
 
-	zval *definition, *escape_char = NULL, *columns, *selected_columns, *distinct;
-	zval *column = NULL, *column_sql = NULL;
-	zval *column_domain_sql = NULL, *column_alias_sql = NULL;
-	zval *columns_sql = NULL, *tables, *selected_tables;
-	zval *table = NULL, *sql_table = NULL, *tables_sql = NULL, *sql, *joins;
-	zval *join = NULL, *type = NULL, *sql_join = NULL, *join_conditions_array = NULL;
-	zval *join_expressions = NULL, *join_condition = NULL, *join_expression = NULL;
-	zval *join_conditions = NULL, *where_conditions;
-	zval *where_expression = NULL, *group_items, *group_fields;
-	zval *group_field = NULL, *group_expression = NULL, *group_sql;
-	zval *group_clause, *having_conditions, *having_expression = NULL;
-	zval *order_fields, *order_items, *order_item = NULL;
-	zval *order_expression = NULL, *order_sql_item = NULL, *sql_order_type = NULL;
-	zval *order_sql_item_type = NULL, *order_sql, *tmp1 = NULL, *tmp2 = NULL;
-	zval *limit_value;
-	zval *number, *offset;
+	zval *definition, *escape_char = NULL, *columns, *selected_columns, *distinct, *column = NULL, *column_sql = NULL;
+	zval *column_domain_sql = NULL, *column_alias_sql = NULL, *columns_sql = NULL, *tables, *selected_tables;
+	zval *table = NULL, *sql_table = NULL, *tables_sql = NULL, *sql, *joins, *join = NULL, *type = NULL, *sql_join = NULL, *join_conditions_array = NULL;
+	zval *join_expressions = NULL, *join_condition = NULL, *join_expression = NULL, *join_conditions = NULL, *where_conditions;
+	zval *where_expression = NULL, *group_items, *group_fields, *group_field = NULL, *group_expression = NULL, *group_sql;
+	zval *group_clause, *having_conditions, *having_expression = NULL, *order_fields, *order_items, *order_item = NULL;
+	zval *order_expression = NULL, *order_sql_item = NULL, *sql_order_type = NULL, *order_sql_item_type = NULL, *order_sql, *tmp1 = NULL, *tmp2 = NULL;
+	zval *limit_value, *number, *offset, *force_index, *sql_force_index = NULL;
 	HashTable *ah0, *ah1, *ah2, *ah3, *ah4, *ah5;
 	HashPosition hp0, hp1, hp2, hp3, hp4, hp5;
 	zval **hd;
@@ -955,6 +995,12 @@ PHP_METHOD(Phalcon_Db_Dialect, select){
 	}
 
 	PHALCON_SCONCAT_VSV(sql, columns_sql, " FROM ", tables_sql);
+
+	/* Check for a FORCE INDEX clause */
+	if (phalcon_array_isset_string_fetch(&force_index, definition, SS("forceIndex"))) {
+		PHALCON_CALL_METHOD(&sql_force_index, this_ptr, "getsqlexpressionforceindex", force_index);
+		PHALCON_SCONCAT_SV(sql, " ", sql_force_index);
+	}
 
 	/**
 	 * Check for joins

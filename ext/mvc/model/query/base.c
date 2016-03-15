@@ -536,6 +536,9 @@ int phql_internal_parse_phql(zval **result, char *phql, unsigned int phql_length
 			case PHQL_T_FOR:
 				phql_(phql_parser, PHQL_FOR, NULL, parser_status);
 				break;
+			case PHQL_T_FORCEINDEX:
+    			phql_parse_with_token(phql_parser, PHQL_T_FORCEINDEX, PHQL_FORCEINDEX, &token, parser_status);
+				break;
 			default:
 				parser_status->status = PHQL_PARSING_FAILED;
 				error_length = sizeof(char) * 32;

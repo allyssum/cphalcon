@@ -161,7 +161,7 @@ static zval *phql_ret_select_statement(zval *S, zval *W, zval *O, zval *G, zval 
 	return ret;
 }
 
-static zval *phql_ret_select_clause(zval *distinct, zval *columns, zval *tables, zval *join_list)
+static zval *phql_ret_select_clause(zval *distinct, zval *columns, zval *tables, zval *join_list, zval *force_index)
 {
 	zval *ret;
 
@@ -176,6 +176,10 @@ static zval *phql_ret_select_clause(zval *distinct, zval *columns, zval *tables,
 	add_assoc_zval(ret, phalcon_interned_tables, tables);
 	if (join_list) {
 		add_assoc_zval(ret, phalcon_interned_joins, join_list);
+	}
+
+	if (force_index) {
+		add_assoc_zval(ret, phalcon_interned_forceIndex, force_index);
 	}
 
 	return ret;
@@ -609,8 +613,12 @@ select_statement(R) ::= select_clause(S) where_clause(W) group_clause(G) having_
 
 %destructor select_clause { zval_ptr_dtor(&$$); }
 
+select_clause(R) ::= SELECT distinct_all(D) column_list(C) FROM associated_name_list(A) force_index(F) join_list_or_null(J) . {
+	R = phql_ret_select_clause(D, C, A, J, F);
+}
+
 select_clause(R) ::= SELECT distinct_all(D) column_list(C) FROM associated_name_list(A) join_list_or_null(J) . {
-	R = phql_ret_select_clause(D, C, A, J);
+	R = phql_ret_select_clause(D, C, A, J, NULL);
 }
 
 %destructor distinct_all { phalcon_safe_zval_ptr_dtor($$); }
@@ -1173,6 +1181,12 @@ when_clause(R) ::= WHEN expr(E) THEN expr(T) . {
 
 when_clause(R) ::= ELSE expr(E) . {
 	R = phql_ret_expr(PHQL_T_ELSE, E, NULL);
+}
+
+%destructor force_index { zval_ptr_dtor(&$$); }
+
+force_index(R) ::= FORCEINDEX(I) PARENTHESES_OPEN distinct_or_null(D) argument_list_or_null(L) PARENTHESES_CLOSE . {
+	R = phql_ret_func_call(I, L, D);
 }
 
 %destructor function_call { zval_ptr_dtor(&$$); }

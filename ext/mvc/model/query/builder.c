@@ -203,7 +203,7 @@ PHALCON_INIT_CLASS(Phalcon_Mvc_Model_Query_Builder){
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, __construct){
 
 	zval *params = NULL, *dependency_injector = NULL, *conditions = NULL;
-	zval *models, *columns, *group_clause, *joins;
+	zval *models, *force_index, *columns, *group_clause, *joins;
 	zval *having_clause, *order_clause, *limit_clause;
 	zval *offset_clause, *for_update, *shared_lock;
 	zval *limit, *offset, *single_condition_array = NULL, *single_condition_key = NULL;
@@ -328,6 +328,10 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, __construct){
 		 */
 		if (phalcon_array_isset_string_fetch(&models, params, SS("models"))) {
 			phalcon_update_property_this(this_ptr, SL("_models"), models TSRMLS_CC);
+		}
+
+		if (phalcon_array_isset_string_fetch(&force_index, params, SS("forceIndex"))) {
+			phalcon_update_property_this(this_ptr, SL("_forceIndex"), force_index TSRMLS_CC);
 		}
 
 		/** 
@@ -1619,6 +1623,42 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 		PHALCON_SCONCAT_SVS(phql, " FROM [", models, "]");
 	}
 
+	force_index = phalcon_fetch_nproperty_this(this_ptr, SL("_forceIndex"), PH_NOISY TSRMLS_CC);
+	if (Z_TYPE_P(force_index) != IS_NULL) {
+		if (Z_TYPE_P(force_index) == IS_ARRAY) {
+
+			PHALCON_INIT_VAR(force_index_items);
+			array_init(force_index_items);
+
+			phalcon_is_iterable(force_index, &ah6, &hp6, 0, 0);
+
+			while (zend_hash_get_current_data_ex(ah6, (void**) &hd, &hp6) == SUCCESS) {
+				PHALCON_GET_HVALUE(force_index_item);
+
+				if (phalcon_is_numeric(force_index_item)) {
+					phalcon_array_append(&force_index_items, force_index_item, PH_COPY);
+				} else {
+					if (phalcon_memnstr_str(force_index_item, SL("."))) {
+						phalcon_array_append(&force_index_items, force_index_item, PH_COPY);
+					} else {
+						PHALCON_INIT_NVAR(escaped_item);
+						PHALCON_CONCAT_SVS(escaped_item, "[", force_index_item, "]");
+						phalcon_array_append(&force_index_items, escaped_item, PH_COPY);
+					}
+				}
+
+				zend_hash_move_forward_ex(ah5, &hp5);
+			}
+
+			PHALCON_INIT_NVAR(joined_items);
+			phalcon_fast_join_str(joined_items, SL(", "), force_index_items TSRMLS_CC);
+
+			PHALCON_SCONCAT_SVS(phql, " FORCEINDEX(", joined_items, ")");
+		} else {
+			PHALCON_SCONCAT_SVS(phql, " FORCEINDEX(", force_index, ")");
+		}
+	}
+
 	/** 
 	 * Check if joins were passed to the builders
 	 */
@@ -1820,42 +1860,6 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 			if (Z_TYPE_P(offset) != IS_NULL) {
 				PHALCON_SCONCAT_SV(phql, " OFFSET ", offset);
 			}
-		}
-	}
-
-	force_index = phalcon_fetch_nproperty_this(this_ptr, SL("_forceIndex"), PH_NOISY TSRMLS_CC);
-	if (Z_TYPE_P(force_index) != IS_NULL) {
-		if (Z_TYPE_P(force_index) == IS_ARRAY) {
-
-			PHALCON_INIT_VAR(force_index_items);
-			array_init(force_index_items);
-
-			phalcon_is_iterable(force_index, &ah6, &hp6, 0, 0);
-
-			while (zend_hash_get_current_data_ex(ah6, (void**) &hd, &hp6) == SUCCESS) {
-				PHALCON_GET_HVALUE(force_index_item);
-
-				if (phalcon_is_numeric(force_index_item)) {
-					phalcon_array_append(&force_index_items, force_index_item, PH_COPY);
-				} else {
-					if (phalcon_memnstr_str(force_index_item, SL("."))) {
-						phalcon_array_append(&force_index_items, force_index_item, PH_COPY);
-					} else {
-						PHALCON_INIT_NVAR(escaped_item);
-						PHALCON_CONCAT_SVS(escaped_item, "[", force_index_item, "]");
-						phalcon_array_append(&force_index_items, escaped_item, PH_COPY);
-					}
-				}
-
-				zend_hash_move_forward_ex(ah5, &hp5);
-			}
-
-			PHALCON_INIT_NVAR(joined_items);
-			phalcon_fast_join_str(joined_items, SL(", "), force_index_items TSRMLS_CC);
-
-			PHALCON_SCONCAT_SVS(phql, " FORCE INDEX(", joined_items, ")");
-		} else {
-			PHALCON_SCONCAT_SVS(phql, " FORCE INDEX(", force_index, ")");
 		}
 	}
 

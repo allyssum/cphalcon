@@ -148,6 +148,8 @@
 #define PHQL_T_END 412
 #define PHQL_T_THEN 413
 
+#define PHQL_T_FORCEINDEX 500
+
 /* list of tokens and their names */
 typedef struct _phql_token_names {
 	char *name;
