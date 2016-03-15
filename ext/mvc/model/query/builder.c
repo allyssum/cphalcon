@@ -91,6 +91,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getGroupBy);
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql);
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getQuery);
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getConditions);
+PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, forceIndex);
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_model_query_builder___construct, 0, 0, 0)
 	ZEND_ARG_INFO(0, params)
@@ -98,6 +99,10 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_model_query_builder_offset, 0, 0, 1)
 	ZEND_ARG_INFO(0, offset)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_model_query_builder_forceindex, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry phalcon_mvc_model_query_builder_method_entry[] = {
@@ -134,6 +139,7 @@ static const zend_function_entry phalcon_mvc_model_query_builder_method_entry[] 
 	PHP_ME(Phalcon_Mvc_Model_Query_Builder, getPhql, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Query_Builder, getQuery, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Query_Builder, getConditions, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Phalcon_Mvc_Model_Query_Builder, forceIndex, arginfo_phalcon_mvc_model_query_builder_forceindex, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 
@@ -159,6 +165,7 @@ PHALCON_INIT_CLASS(Phalcon_Mvc_Model_Query_Builder){
 	zend_declare_property_null(phalcon_mvc_model_query_builder_ce, SL("_bindTypes"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_null(phalcon_mvc_model_query_builder_ce, SL("_distinct"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_long(phalcon_mvc_model_query_builder_ce, SL("_hiddenParamNumber"), 0, ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_query_builder_ce, SL("_forceIndex"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	zend_class_implements(phalcon_mvc_model_query_builder_ce TSRMLS_CC, 1, phalcon_mvc_model_query_builderinterface_ce);
 
@@ -1436,7 +1443,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 	zval *join = NULL, *join_model = NULL, *join_conditions = NULL, *join_alias = NULL;
 	zval *join_type = NULL, *group, *group_items, *group_item = NULL;
 	zval *escaped_item = NULL, *joined_items = NULL, *having, *order;
-	zval *order_items, *order_item = NULL, *limit, *number, *for_update;
+	zval *order_items, *order_item = NULL, *limit, *number, *force_index, *for_update;
 	HashTable *ah, *ah0, *ah1, *ah2, *ah3, *ah4, *ah5;
 	HashPosition hp, hp0, hp1, hp2, hp3, hp4, hp5;
 	zval **hd;
@@ -1819,6 +1826,11 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 		}
 	}
 
+	force_index = phalcon_fetch_nproperty_this(this_ptr, SL("_forceIndex"), PH_NOISY TSRMLS_CC);
+	if (Z_TYPE_P(force_index) != IS_NULL) {
+		PHALCON_SCONCAT_SVS(phql, " FORCE INDEX(", force_index, ")");
+	}
+
 	/** 
 	 * Process FOR UPDATE clause
 	 */
@@ -2028,3 +2040,12 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getConditions){
 	RETURN_CTOR(conditions);
 }
 
+PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, forceIndex){
+
+	zval *index;
+
+	phalcon_fetch_params(0, 1, 0, &index);
+
+	phalcon_update_property_this(this_ptr, SL("_forceIndex"), index TSRMLS_CC);
+	RETURN_THISW();
+}
