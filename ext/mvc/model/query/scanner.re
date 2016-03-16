@@ -37,6 +37,14 @@ int phql_get_token(phql_scanner_state *s, phql_scanner_token *token) {
 		re2c:indent:top = 2;
 		re2c:yyfill:enable = 0;
 
+		'FORCEINDEX' {
+			token->opcode = PHQL_T_FORCEINDEX;
+			token->value = estrndup("FORCE INDEX", YYCURSOR - q + 1);
+			token->len = YYCURSOR - q + 1;
+			q = YYCURSOR;
+			return 0;
+		}
+
 		HINTEGER = [x0-9A-Fa-f]+;
 		HINTEGER {
 			token->value = estrndup(q, YYCURSOR - q);

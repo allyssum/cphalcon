@@ -60,6 +60,7 @@ const char *phalcon_interned_label					= NULL;
 const char *phalcon_interned_left					= NULL;
 const char *phalcon_interned_limit					= NULL;
 const char *phalcon_interned_forupdate				= NULL;
+const char *phalcon_interned_forceIndex				= NULL;
 const char *phalcon_interned_line					= NULL;
 const char *phalcon_interned_message				= NULL;
 const char *phalcon_interned_model					= NULL;
@@ -159,6 +160,7 @@ PHALCON_STATIC void phalcon_init_interned_strings(TSRMLS_D)
 	phalcon_interned_left						= zend_new_interned_string(ZEND_STRS("left"), 0 TSRMLS_CC);
 	phalcon_interned_limit						= zend_new_interned_string(ZEND_STRS("limit"), 0 TSRMLS_CC);
 	phalcon_interned_forupdate					= zend_new_interned_string(ZEND_STRS("forupdate"), 0 TSRMLS_CC);
+	phalcon_interned_forceIndex					= zend_new_interned_string(ZEND_STRS("forceIndex"), 0 TSRMLS_CC);
 	phalcon_interned_line						= zend_new_interned_string(ZEND_STRS("line"), 0 TSRMLS_CC);
 	phalcon_interned_message					= zend_new_interned_string(ZEND_STRS("message"), 0 TSRMLS_CC);
 	phalcon_interned_model						= zend_new_interned_string(ZEND_STRS("model"), 0 TSRMLS_CC);

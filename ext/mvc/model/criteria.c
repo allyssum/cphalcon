@@ -86,6 +86,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Criteria, getLimit);
 PHP_METHOD(Phalcon_Mvc_Model_Criteria, setUniqueRow);
 PHP_METHOD(Phalcon_Mvc_Model_Criteria, getUniqueRow);
 PHP_METHOD(Phalcon_Mvc_Model_Criteria, forUpdate);
+PHP_METHOD(Phalcon_Mvc_Model_Criteria, forceIndex);
 PHP_METHOD(Phalcon_Mvc_Model_Criteria, sharedLock);
 PHP_METHOD(Phalcon_Mvc_Model_Criteria, getParams);
 PHP_METHOD(Phalcon_Mvc_Model_Criteria, fromInput);
@@ -137,6 +138,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_model_criteria_cache, 0, 0, 1)
 	ZEND_ARG_ARRAY_INFO(0, options, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_model_criteria_forceindex, 0, 0, 1)
+	ZEND_ARG_ARRAY_INFO(0, index, 0)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry phalcon_mvc_model_criteria_method_entry[] = {
 	PHP_ME(Phalcon_Mvc_Model_Criteria, setModelName, arginfo_phalcon_mvc_model_criteriainterface_setmodelname, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Criteria, getModelName, NULL, ZEND_ACC_PUBLIC)
@@ -168,6 +173,7 @@ static const zend_function_entry phalcon_mvc_model_criteria_method_entry[] = {
 	PHP_ME(Phalcon_Mvc_Model_Criteria, setUniqueRow, arginfo_phalcon_mvc_model_criteriainterface_setuniquerow, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Criteria, getUniqueRow, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Criteria, forUpdate, arginfo_phalcon_mvc_model_criteriainterface_forupdate, ZEND_ACC_PUBLIC)
+	PHP_ME(Phalcon_Mvc_Model_Criteria, forceIndex, arginfo_phalcon_mvc_model_criteria_forceindex, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Criteria, sharedLock, arginfo_phalcon_mvc_model_criteriainterface_sharedlock, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Criteria, getParams, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Criteria, fromInput, arginfo_phalcon_mvc_model_criteriainterface_frominput, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC)
@@ -205,6 +211,7 @@ PHALCON_INIT_CLASS(Phalcon_Mvc_Model_Criteria) {
 	zend_declare_property_null(phalcon_mvc_model_criteria_ce, SL("_limit"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_null(phalcon_mvc_model_criteria_ce, SL("_offset"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_null(phalcon_mvc_model_criteria_ce, SL("_forUpdate"), ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_criteria_ce, SL("_forceIndex"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_null(phalcon_mvc_model_criteria_ce, SL("_sharedLock"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_long(phalcon_mvc_model_criteria_ce, SL("_hiddenParamNumber"), 0, ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_null(phalcon_mvc_model_criteria_ce, SL("_cacheOptions"), ZEND_ACC_PROTECTED TSRMLS_CC);
@@ -1212,6 +1219,16 @@ PHP_METHOD(Phalcon_Mvc_Model_Criteria, forUpdate) {
 	RETURN_THISW();
 }
 
+PHP_METHOD(Phalcon_Mvc_Model_Criteria, forceIndex) {
+
+	zval *force_index;
+
+	phalcon_fetch_params(0, 1, 0, &force_index);
+
+	phalcon_update_property_this(this_ptr, SL("_forceIndex"), force_index TSRMLS_CC);
+	RETURN_THISW();
+}
+
 /**
  * Adds the "shared_lock" parameter to the criteria
  *
@@ -1703,19 +1720,17 @@ PHP_METHOD(Phalcon_Mvc_Model_Criteria, getPhql) {
  */
 PHP_METHOD(Phalcon_Mvc_Model_Criteria, _generateSelect) {
 
-	zval *dependency_injector = NULL, *model, *conditions = NULL;
-	zval *service_name, *meta_data = NULL, *model_instance;
-	zval *no_primary = NULL, *primary_keys = NULL, *first_primary_key;
-	zval *column_map = NULL, *attribute_field = NULL, *exception_message;
+	zval *dependency_injector = NULL, *model, *conditions = NULL, *service_name, *meta_data = NULL, *model_instance;
+	zval *no_primary = NULL, *primary_keys = NULL, *first_primary_key, *column_map = NULL, *attribute_field = NULL, *exception_message;
 	zval *primary_key_condition, *phql, *columns;
-	zval *selected_columns = NULL, *column = NULL, *column_alias = NULL;
+	zval *selected_columns = NULL, *column = NULL, *column_alias = NULL, *force_index, *force_index_items = NULL;
 	zval *aliased_column = NULL, *joined_columns = NULL;
 	zval *joins, *join = NULL, *join_model = NULL, *join_conditions = NULL, *join_alias = NULL;
 	zval *join_type = NULL, *group, *group_items, *group_item = NULL;
 	zval *escaped_item = NULL, *joined_items = NULL, *having, *order;
 	zval *order_items, *order_item = NULL, *limit, *number, *for_update;
-	HashTable *ah0, *ah1, *ah2, *ah3;
-	HashPosition hp0, hp1, hp2, hp3;
+	HashTable *ah0, *ah01, *ah1, *ah2, *ah3;
+	HashPosition hp0, hp01, hp1, hp2, hp3;
 	zval **hd;
 	zend_class_entry *ce0;
 
@@ -1851,6 +1866,33 @@ PHP_METHOD(Phalcon_Mvc_Model_Criteria, _generateSelect) {
 	}
 
 	PHALCON_SCONCAT_SVS(phql, " FROM [", model, "]");
+
+	/** 
+	 * Process FORCE INDEX clause
+	 */
+	force_index = phalcon_fetch_nproperty_this(this_ptr, SL("_forceIndex"), PH_NOISY TSRMLS_CC);
+	if (PHALCON_IS_NOT_EMPTY(force_index)) {
+		if (Z_TYPE_P(force_index) == IS_ARRAY) {
+			PHALCON_INIT_NVAR(force_index_items);
+			array_init(force_index_items);
+
+			phalcon_is_iterable(force_index, &ah01, &hp01, 0, 0);
+
+			while (zend_hash_get_current_data_ex(ah01, (void**) &hd, &hp01) == SUCCESS) {
+
+				PHALCON_GET_HVALUE(column);
+				phalcon_array_append(&force_index_items, column, PH_COPY);
+
+				zend_hash_move_forward_ex(ah01, &hp01);
+			}
+
+			PHALCON_INIT_NVAR(joined_columns);
+			phalcon_fast_join_str(joined_columns, SL(", "), force_index_items TSRMLS_CC);
+			PHALCON_SCONCAT_SVS(phql, " FORCEINDEX(", force_index, ")");
+		} else {
+			PHALCON_SCONCAT_SVS(phql, " FORCEINDEX(", force_index, ")");
+		}
+	}
 
 	/** 
 	 * Check if joins were passed to the builders

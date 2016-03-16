@@ -2689,7 +2689,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Query, _prepareSelect){
 	zval *joins, *sql_joins = NULL, *columns, *select_columns = NULL;
 	zval *position, *sql_column_aliases, *column = NULL;
 	zval *sql_column_group = NULL, *sql_column = NULL, *type = NULL, *sql_select;
-	zval *where, *where_expr = NULL, *group_by, *sql_group = NULL;
+	zval *where, *where_expr = NULL, *force_index, *group_by, *sql_group = NULL;
 	zval *having, *having_expr = NULL, *order, *sql_order = NULL;
 	zval *limit, *sql_limit = NULL, *forupdate;
 	HashTable *ah0, *ah1, *ah2;
@@ -3045,6 +3045,13 @@ PHP_METHOD(Phalcon_Mvc_Model_Query, _prepareSelect){
 	phalcon_array_update_string(&sql_select, ISL(columns), sql_columns, PH_COPY);
 	if (phalcon_fast_count_ev(sql_joins TSRMLS_CC)) {
 		phalcon_array_update_string(&sql_select, ISL(joins), sql_joins, PH_COPY);
+	}
+
+	/** 
+	 * Process FOR UPDATE clause if any
+	 */
+	if (phalcon_array_isset_string_fetch(&force_index, select, SS("forceIndex"))) {
+		phalcon_array_update_string(&sql_select, ISL(forceIndex), force_index, PH_COPY);
 	}
 
 	/** 
