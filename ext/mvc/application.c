@@ -296,8 +296,6 @@ PHP_METHOD(Phalcon_Mvc_Application, handle){
 		uri = PHALCON_GLOBAL(z_null);
 	}
 
-	PHALCON_CALL_METHOD(&dependency_injector, this_ptr, "getdi");
-
 	/* Call boot event, this allows the developer to perform initialization actions */
 	PHALCON_INIT_NVAR(event_name);
 	ZVAL_STRING(event_name, "application:boot", 1);
@@ -305,6 +303,8 @@ PHP_METHOD(Phalcon_Mvc_Application, handle){
 	if (PHALCON_IS_FALSE(status)) {
 		RETURN_MM_FALSE;
 	}
+
+	PHALCON_CALL_METHOD(&dependency_injector, this_ptr, "getdi");
 
 	PHALCON_INIT_VAR(service);
 	PHALCON_ZVAL_MAYBE_INTERNED_STRING(service, phalcon_interned_router);
