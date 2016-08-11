@@ -92,11 +92,13 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_view_simple_render, 0, 0, 1)
 	ZEND_ARG_INFO(0, path)
 	ZEND_ARG_INFO(0, params)
+	ZEND_ARG_INFO(0, absolutePath)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_view_simple_partial, 0, 0, 1)
 	ZEND_ARG_INFO(0, partialPath)
 	ZEND_ARG_INFO(0, params)
+	ZEND_ARG_INFO(0, absolutePath)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_view_simple_setcacheoptions, 0, 0, 1)
@@ -370,9 +372,9 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, _loadTemplateEngines){
  */
 PHP_METHOD(Phalcon_Mvc_View_Simple, _internalRender){
 
-	zval *path, *params, *events_manager, *event_name = NULL, *debug_message = NULL;
+	zval *path, *params, *absolute_path = NULL, *events_manager, *event_name = NULL, *debug_message = NULL;
 	zval *status = NULL, *not_exists = NULL, *views_dir;
-	zval *views_dir_path, *engines = NULL, *engine = NULL, *extension = NULL;
+	zval *views_dir_path = NULL, *engines = NULL, *engine = NULL, *extension = NULL;
 	zval *view_engine_path = NULL, *exception_message;
 	HashTable *ah0;
 	HashPosition hp0;
@@ -380,7 +382,11 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, _internalRender){
 
 	PHALCON_MM_GROW();
 
-	phalcon_fetch_params(1, 2, 0, &path, &params);
+	phalcon_fetch_params(1, 2, 0, &path, &params, &absolute_path);
+
+	if (absolute_path == NULL) {
+		absolute_path = PHALCON_GLOBAL(z_false);
+	}
 
 	PHALCON_OBS_VAR(events_manager);
 	phalcon_read_property_this(&events_manager, this_ptr, SL("_eventsManager"), PH_NOISY TSRMLS_CC);
@@ -411,11 +417,15 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, _internalRender){
 	PHALCON_INIT_VAR(not_exists);
 	ZVAL_TRUE(not_exists);
 
-	PHALCON_OBS_VAR(views_dir);
-	phalcon_read_property_this(&views_dir, this_ptr, SL("_viewsDir"), PH_NOISY TSRMLS_CC);
+	if (zend_is_true(absolute_path)) {
+		PHALCON_CPY_WRT(views_dir_path, views_dir, path);
+	} else {
+		PHALCON_OBS_VAR(views_dir);
+		phalcon_read_property_this(&views_dir, this_ptr, SL("_viewsDir"), PH_NOISY TSRMLS_CC);
 
-	PHALCON_INIT_VAR(views_dir_path);
-	PHALCON_CONCAT_VV(views_dir_path, views_dir, path);
+		PHALCON_INIT_VAR(views_dir_path);
+		PHALCON_CONCAT_VV(views_dir_path, views_dir, path);
+	}
 
 	/** 
 	 * Load the template engines
@@ -512,16 +522,20 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, _internalRender){
  */
 PHP_METHOD(Phalcon_Mvc_View_Simple, render){
 
-	zval *path, *params = NULL, *cache = NULL, *is_started = NULL, *key = NULL, *lifetime = NULL;
+	zval *path, *params = NULL, *absolute_path = NULL, *cache = NULL, *is_started = NULL, *key = NULL, *lifetime = NULL;
 	zval *cache_options, *content = NULL, *view_params;
 	zval *merged_params = NULL, *is_fresh = NULL;
 
 	PHALCON_MM_GROW();
 
-	phalcon_fetch_params(1, 1, 1, &path, &params);
+	phalcon_fetch_params(1, 1, 1, &path, &params, &absolute_path);
 
 	if (!params) {
 		params = PHALCON_GLOBAL(z_null);
+	}
+
+	if (absolute_path == NULL) {
+		absolute_path = PHALCON_GLOBAL(z_false);
 	}
 
 	/** 
@@ -604,7 +618,7 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, render){
 	/** 
 	 * internalRender is also reused by partials
 	 */
-	PHALCON_CALL_METHOD(NULL, this_ptr, "_internalrender", path, merged_params);
+	PHALCON_CALL_METHOD(NULL, this_ptr, "_internalrender", path, merged_params, absolute_path);
 
 	/** 
 	 * Store the data in output into the cache
@@ -648,15 +662,19 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, render){
  */
 PHP_METHOD(Phalcon_Mvc_View_Simple, partial){
 
-	zval *partial_path, *params = NULL, *view_params = NULL, *merged_params = NULL;
+	zval *partial_path, *params = NULL, *absolute_path = NULL, *view_params = NULL, *merged_params = NULL;
 	zval *content;
 
 	PHALCON_MM_GROW();
 
-	phalcon_fetch_params(1, 1, 1, &partial_path, &params);
+	phalcon_fetch_params(1, 1, 1, &partial_path, &params, &absolute_path);
 
 	if (!params) {
 		params = PHALCON_GLOBAL(z_null);
+	}
+
+	if (absolute_path == NULL) {
+		absolute_path = PHALCON_GLOBAL(z_false);
 	}
 
 	/** 
@@ -694,7 +712,7 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, partial){
 	/** 
 	 * Call engine render, this checks in every registered engine for the partial
 	 */
-	PHALCON_CALL_METHOD(NULL, this_ptr, "_internalrender", partial_path, merged_params);
+	PHALCON_CALL_METHOD(NULL, this_ptr, "_internalrender", partial_path, merged_params, absolute_path);
 
 	/** 
 	 * Now we need to restore the original view parameters
