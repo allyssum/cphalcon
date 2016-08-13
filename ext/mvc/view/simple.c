@@ -418,7 +418,7 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, _internalRender){
 	ZVAL_TRUE(not_exists);
 
 	if (zend_is_true(absolute_path)) {
-		PHALCON_CPY_WRT(views_dir_path, views_dir, path);
+		PHALCON_CPY_WRT(views_dir_path, path);
 	} else {
 		PHALCON_OBS_VAR(views_dir);
 		phalcon_read_property_this(&views_dir, this_ptr, SL("_viewsDir"), PH_NOISY TSRMLS_CC);
