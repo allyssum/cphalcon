@@ -382,7 +382,7 @@ PHP_METHOD(Phalcon_Mvc_View_Simple, _internalRender){
 
 	PHALCON_MM_GROW();
 
-	phalcon_fetch_params(1, 2, 0, &path, &params, &absolute_path);
+	phalcon_fetch_params(1, 2, 1, &path, &params, &absolute_path);
 
 	if (absolute_path == NULL) {
 		absolute_path = PHALCON_GLOBAL(z_false);

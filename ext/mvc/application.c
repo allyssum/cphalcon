@@ -24,6 +24,8 @@
 #include "mvc/routerinterface.h"
 #include "mvc/viewinterface.h"
 #include "mvc/view/modelinterface.h"
+#include "mvc/urlinterface.h"
+#include "di/factorydefault.h"
 #include "di/injectable.h"
 #include "diinterface.h"
 #include "events/managerinterface.h"
@@ -41,6 +43,7 @@
 #include "kernel/concat.h"
 #include "kernel/file.h"
 #include "kernel/require.h"
+#include "kernel/debug.h"
 
 #include "interned-strings.h"
 
@@ -96,6 +99,7 @@ PHP_METHOD(Phalcon_Mvc_Application, getModules);
 PHP_METHOD(Phalcon_Mvc_Application, setDefaultModule);
 PHP_METHOD(Phalcon_Mvc_Application, getDefaultModule);
 PHP_METHOD(Phalcon_Mvc_Application, handle);
+PHP_METHOD(Phalcon_Mvc_Application, request);
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_application___construct, 0, 0, 0)
 	ZEND_ARG_INFO(0, dependencyInjector)
@@ -118,6 +122,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_application_handle, 0, 0, 0)
 	ZEND_ARG_INFO(0, uri)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_application_request, 0, 0, 0)
+	ZEND_ARG_INFO(0, uri)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry phalcon_mvc_application_method_entry[] = {
 	PHP_ME(Phalcon_Mvc_Application, __construct, arginfo_phalcon_mvc_application___construct, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 	PHP_ME(Phalcon_Mvc_Application, useImplicitView, arginfo_phalcon_mvc_application_useimplicitview, ZEND_ACC_PUBLIC)
@@ -126,6 +134,7 @@ static const zend_function_entry phalcon_mvc_application_method_entry[] = {
 	PHP_ME(Phalcon_Mvc_Application, setDefaultModule, arginfo_phalcon_mvc_application_setdefaultmodule, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Application, getDefaultModule, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Application, handle, arginfo_phalcon_mvc_application_handle, ZEND_ACC_PUBLIC)
+	PHP_ME(Phalcon_Mvc_Application, request, arginfo_phalcon_mvc_application_request, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 
@@ -151,13 +160,23 @@ PHALCON_INIT_CLASS(Phalcon_Mvc_Application){
  */
 PHP_METHOD(Phalcon_Mvc_Application, __construct){
 
-	zval *dependency_injector = NULL;
+	zval *dependency_injector = NULL, *name;
 
-	phalcon_fetch_params(0, 0, 1, &dependency_injector);
+	PHALCON_MM_GROW();
+
+	phalcon_fetch_params(1, 0, 1, &dependency_injector);
 
 	if (dependency_injector) {
-		PHALCON_CALL_METHODW(NULL, this_ptr, "setdi", dependency_injector);
+		PHALCON_CALL_METHOD(NULL, this_ptr, "setdi", dependency_injector);
+	} else {
+		PHALCON_CALL_METHOD(&dependency_injector, this_ptr, "getdi");
 	}
+
+	PHALCON_INIT_VAR(name);
+	PHALCON_ZVAL_MAYBE_INTERNED_STRING(name, phalcon_interned_app);
+	PHALCON_CALL_METHOD(NULL, dependency_injector, "setShared", name, this_ptr);
+
+	RETURN_MM();
 }
 
 /**
@@ -278,7 +297,7 @@ PHP_METHOD(Phalcon_Mvc_Application, getDefaultModule){
 PHP_METHOD(Phalcon_Mvc_Application, handle){
 
 	zval *uri = NULL, *dependency_injector = NULL, *event_name = NULL;
-	zval *status = NULL, *service = NULL, *router = NULL, *module_name = NULL;
+	zval *status = NULL, *service = NULL, *router = NULL, *route_found = NULL, *module_name = NULL;
 	zval *module_object = NULL, *modules;
 	zval *module, *class_name = NULL, *module_params;
 	zval *implicit_view, *view = NULL, *namespace_name = NULL;
@@ -290,7 +309,7 @@ PHP_METHOD(Phalcon_Mvc_Application, handle){
 
 	PHALCON_MM_GROW();
 
-	phalcon_fetch_params(1, 0, 1, &uri);
+	phalcon_fetch_params(1, 0, 2, &uri);
 
 	if (!uri) {
 		uri = PHALCON_GLOBAL(z_null);
@@ -312,7 +331,7 @@ PHP_METHOD(Phalcon_Mvc_Application, handle){
 	PHALCON_VERIFY_INTERFACE(router, phalcon_mvc_routerinterface_ce);
 
 	/* Handle the URI pattern (if any) */
-	PHALCON_CALL_METHOD(NULL, router, "handle", uri);
+	PHALCON_CALL_METHOD(&route_found, router, "handle", uri);
 
 	/* Load module config */
 	PHALCON_CALL_METHOD(&module_name, router, "getmodulename");
@@ -602,4 +621,57 @@ PHP_METHOD(Phalcon_Mvc_Application, handle){
 
 	/* Return the response */
 	RETURN_CCTOR(response);
+}
+
+/**
+ * Does a HMVC request in the application
+ *
+ * @param array $location
+ * @param array $data
+ * @return mixed
+ */
+PHP_METHOD(Phalcon_Mvc_Application, request){
+
+	zval *location, *dependency_injector = NULL, *url = NULL, *uri = NULL, *dependency_injector_new, *service = NULL, *router = NULL, *view = NULL, *app, *response = NULL;
+
+	PHALCON_MM_GROW();
+
+	phalcon_fetch_params(1, 1, 0, &location);
+
+	PHALCON_CALL_METHOD(&dependency_injector, this_ptr, "getdi");
+
+	PHALCON_INIT_NVAR(service);
+	PHALCON_ZVAL_MAYBE_INTERNED_STRING(service, phalcon_interned_url);
+
+	PHALCON_CALL_METHOD(&url, dependency_injector, "getshared", service);
+	PHALCON_VERIFY_INTERFACE(url, phalcon_mvc_urlinterface_ce);
+
+	PHALCON_CALL_METHOD(&uri, url, "get", location);
+
+	PHALCON_INIT_VAR(dependency_injector_new);
+	object_init_ex(dependency_injector_new, phalcon_di_factorydefault_ce);
+	PHALCON_CALL_METHOD(NULL, dependency_injector_new, "__construct");
+
+	PHALCON_INIT_NVAR(service);
+	PHALCON_ZVAL_MAYBE_INTERNED_STRING(service, phalcon_interned_router);
+
+	PHALCON_CALL_METHOD(&router, dependency_injector, "get", service);
+	PHALCON_CALL_METHOD(NULL, dependency_injector_new, "set", service, router);
+
+	PHALCON_INIT_NVAR(service);
+	PHALCON_ZVAL_MAYBE_INTERNED_STRING(service, phalcon_interned_view);
+
+	PHALCON_CALL_METHOD(&view, dependency_injector, "get", service);
+	PHALCON_CALL_METHOD(NULL, dependency_injector_new, "set", service, view);
+
+	PHALCON_INIT_VAR(app);
+	object_init_ex(app, phalcon_mvc_application_ce);
+	PHALCON_CALL_METHOD(NULL, app, "__construct", dependency_injector_new);
+
+	PHALCON_CALL_METHOD(&response, app, "handle", uri);
+	if (Z_TYPE_P(response) == IS_OBJECT) {
+		PHALCON_RETURN_CALL_METHOD(response, "getcontent");
+	}
+
+	RETURN_MM();
 }

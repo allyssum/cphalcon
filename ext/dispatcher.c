@@ -630,7 +630,7 @@ PHP_METHOD(Phalcon_Dispatcher, dispatch){
 		} else {
 			PHALCON_CONCAT_VV(handler_class, camelized_class, handler_suffix);
 		}
-
+zend_print_zval_r(handler_class, 0);
 		/**
 		 * Handlers are retrieved as shared instances from the Service Container
 		 */
@@ -709,6 +709,7 @@ PHP_METHOD(Phalcon_Dispatcher, dispatch){
 		 */
 		PHALCON_INIT_NVAR(action_method);
 		PHALCON_CONCAT_VV(action_method, action_name, action_suffix);
+
 		if (phalcon_method_exists(handler, action_method TSRMLS_CC) == FAILURE) {
 
 			/**
