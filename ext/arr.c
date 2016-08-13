@@ -515,7 +515,7 @@ PHP_METHOD(Phalcon_Arr, range){
  */
 PHP_METHOD(Phalcon_Arr, get){
 
-	zval *array, *keys, *key = NULL, *value = NULL, *default_value = NULL;
+	zval *array, *keys, *key = NULL, *default_value = NULL, *arr = NULL, *value = NULL;
 	HashTable *ah0;
 	HashPosition hp0;
 	zval **hd;
@@ -523,6 +523,12 @@ PHP_METHOD(Phalcon_Arr, get){
 	PHALCON_MM_GROW();
 
 	phalcon_fetch_params(1, 2, 1, &array, &keys, &default_value);
+
+	if (Z_TYPE_P(array) != IS_ARRAY) { 
+		PHALCON_CALL_FUNCTION(&arr, "get_object_vars", array);
+	} else {
+		PHALCON_CPY_WRT(arr, array);
+	}
 
 	if (!default_value) {
 		PHALCON_INIT_VAR(default_value);
@@ -536,16 +542,16 @@ PHP_METHOD(Phalcon_Arr, get){
 		while (zend_hash_get_current_data_ex(ah0, (void**) &hd, &hp0) == SUCCESS) {
 			PHALCON_GET_HVALUE(key);
 
-			if (phalcon_array_isset(array, key)) {
+			if (phalcon_array_isset(arr, key)) {
 				PHALCON_OBS_NVAR(value);
-				phalcon_array_fetch(&value, array, key, PH_NOISY);
+				phalcon_array_fetch(&value, arr, key, PH_NOISY);
 
 				phalcon_array_update_zval(&return_value, key, value, PH_COPY);
 			}
 
 			zend_hash_move_forward_ex(ah0, &hp0);
 		}
-	} else if (phalcon_array_isset_fetch(&value, array, keys)) {
+	} else if (phalcon_array_isset_fetch(&value, arr, keys)) {
 		RETURN_CTOR(value);
 	} else {
 		ZVAL_ZVAL(return_value, default_value, 1, 0);
@@ -556,17 +562,23 @@ PHP_METHOD(Phalcon_Arr, get){
 
 PHP_METHOD(Phalcon_Arr, choice){
 
-	zval *array, *key, *value1, *value2 = NULL;
+	zval *array, *key, *value1, *value2 = NULL, *arr = NULL;
 
 	PHALCON_MM_GROW();
 
 	phalcon_fetch_params(1, 3, 1, &array, &key, &value1, &value2);
 
+	if (Z_TYPE_P(array) != IS_ARRAY) { 
+		PHALCON_CALL_FUNCTION(&arr, "get_object_vars", array);
+	} else {
+		PHALCON_CPY_WRT(arr, array);
+	}
+
 	if (!value2) {
 		value2 = PHALCON_GLOBAL(z_null);
 	}
 
-	if (phalcon_array_isset(array, key)) {
+	if (phalcon_array_isset(arr, key)) {
 		RETURN_CTOR(value1);
 	}
 
