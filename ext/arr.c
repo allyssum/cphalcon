@@ -524,7 +524,7 @@ PHP_METHOD(Phalcon_Arr, get){
 
 	phalcon_fetch_params(1, 2, 1, &array, &keys, &default_value);
 
-	if (Z_TYPE_P(array) != IS_ARRAY) { 
+	if (Z_TYPE_P(array) == IS_OBJECT) { 
 		PHALCON_CALL_FUNCTION(&arr, "get_object_vars", array);
 	} else {
 		PHALCON_CPY_WRT(arr, array);
@@ -568,7 +568,7 @@ PHP_METHOD(Phalcon_Arr, choice){
 
 	phalcon_fetch_params(1, 3, 1, &array, &key, &value1, &value2);
 
-	if (Z_TYPE_P(array) != IS_ARRAY) { 
+	if (Z_TYPE_P(array) == IS_OBJECT) { 
 		PHALCON_CALL_FUNCTION(&arr, "get_object_vars", array);
 	} else {
 		PHALCON_CPY_WRT(arr, array);
