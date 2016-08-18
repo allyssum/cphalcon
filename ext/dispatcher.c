@@ -630,7 +630,7 @@ PHP_METHOD(Phalcon_Dispatcher, dispatch){
 		} else {
 			PHALCON_CONCAT_VV(handler_class, camelized_class, handler_suffix);
 		}
-zend_print_zval_r(handler_class, 0);
+
 		/**
 		 * Handlers are retrieved as shared instances from the Service Container
 		 */
