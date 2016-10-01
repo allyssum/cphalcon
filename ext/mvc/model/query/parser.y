@@ -34,7 +34,7 @@
 			// TODO:
 		}
 		zval_ptr_dtor(&$$);
-		efree($$);
+		// efree($$);
 	}
 }
 %extra_argument {phql_parser_status *status}

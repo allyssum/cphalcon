@@ -1446,7 +1446,7 @@ static void yy_destructor(
 			// TODO:
 		}
 		zval_ptr_dtor(&(yypminor->yy92));
-		efree((yypminor->yy92));
+		// efree((yypminor->yy92));
 	}
 
 /* #line 1453 "parser.c" */
