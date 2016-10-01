@@ -296,22 +296,22 @@ PHP_METHOD(Phalcon_Http_Client_Adapter_Stream, buildBody){
 		PHALCON_CALL_METHOD(NULL, header, "set", key, value);
 
 		PHALCON_INIT_NVAR(option);
-		ZVAL_LONG(option, PHALCON_HTTP_CLIENT_HEADER_BUILD_FIELDS);
-
-		PHALCON_CALL_METHOD(&headers, header, "build", option);
-
-		PHALCON_INIT_NVAR(option);
-		ZVAL_STRING(option, "header", 1);
-
-		PHALCON_CALL_FUNCTION(NULL, "stream_context_set_option", stream, http, option, headers);
-
-		PHALCON_INIT_NVAR(option);
 		ZVAL_STRING(option, "content", 1);
 		
 		PHALCON_CALL_FUNCTION(NULL, "stream_context_set_option", stream, http, option, data);
 
 		RETURN_MM();
 	}
+
+	PHALCON_INIT_NVAR(option);
+	ZVAL_LONG(option, PHALCON_HTTP_CLIENT_HEADER_BUILD_FIELDS);
+
+	PHALCON_CALL_METHOD(&headers, header, "build", option);
+
+	PHALCON_INIT_NVAR(option);
+	ZVAL_STRING(option, "header", 1);
+
+	PHALCON_CALL_FUNCTION(NULL, "stream_context_set_option", stream, http, option, headers);
 
 	if (Z_TYPE_P(data) == IS_ARRAY) {
 		phalcon_is_iterable(data, &ah0, &hp0, 0, 0);

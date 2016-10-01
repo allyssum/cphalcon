@@ -342,19 +342,19 @@ PHP_METHOD(Phalcon_Http_Client_Adapter_Curl, sendInternal){
 
 			PHALCON_CALL_METHOD(NULL, header, "set", key, value);
 
-			PHALCON_CALL_METHOD(&headers, header, "build");
-
 			PHALCON_INIT_NVAR(constant);
 			zend_get_constant(SL("CURLOPT_POSTFIELDS"), constant TSRMLS_CC);
 
 			PHALCON_CALL_FUNCTION(NULL, "curl_setopt", curl, constant, body);
-
-			PHALCON_INIT_NVAR(constant);
-			zend_get_constant(SL("CURLOPT_HTTPHEADER"), constant TSRMLS_CC);
-
-			PHALCON_CALL_FUNCTION(NULL, "curl_setopt", curl, constant, headers);
 		}
 	}
+
+	PHALCON_CALL_METHOD(&headers, header, "build");
+
+	PHALCON_INIT_NVAR(constant);
+	zend_get_constant(SL("CURLOPT_HTTPHEADER"), constant TSRMLS_CC);
+
+	PHALCON_CALL_FUNCTION(NULL, "curl_setopt", curl, constant, headers);
 
 	PHALCON_CALL_FUNCTION(&content, "curl_exec", curl);
 	PHALCON_CALL_FUNCTION(&errorno, "curl_errno", curl);
