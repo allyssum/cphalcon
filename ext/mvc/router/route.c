@@ -360,7 +360,7 @@ PHP_METHOD(Phalcon_Mvc_Router_Route, compilePattern){
 				}
 
 				PHALCON_INIT_NVAR(params_pattern);
-				ZVAL_STRING(params_pattern, "(/.*+)?+", 1);
+				ZVAL_STRING(params_pattern, "(/.*)*", 1);
 			}
 
 			phalcon_fast_str_replace(compiled_pattern, &wildcard, params_pattern, pattern_copy);
@@ -380,7 +380,7 @@ PHP_METHOD(Phalcon_Mvc_Router_Route, compilePattern){
 				phalcon_fast_str_replace(compiled_pattern, &wildcard, params_pattern, pattern_copy);
 			} else {
 				PHALCON_INIT_NVAR(params_pattern);
-				ZVAL_STRING(params_pattern, "([0-9]++)", 1);
+				ZVAL_STRING(params_pattern, "([0-9]+)", 1);
 				phalcon_fast_str_replace(compiled_pattern, &wildcard, params_pattern, pattern_copy);
 			}
 		}

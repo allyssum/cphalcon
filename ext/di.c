@@ -920,6 +920,7 @@ PHP_METHOD(Phalcon_DI, getShared){
 	zval **name, **parameters = NULL;
 	zval *retval;
 	phalcon_di_object *obj;
+	zend_class_entry *ce;
 
 	phalcon_fetch_params_ex(1, 1, &name, &parameters);
 	PHALCON_ENSURE_IS_STRING(name);
@@ -931,6 +932,10 @@ PHP_METHOD(Phalcon_DI, getShared){
 	
 	retval = phalcon_di_read_dimension_internal(getThis(), obj, *name, *parameters TSRMLS_CC);
 	if (retval) {
+		ce = (Z_TYPE_P(retval) == IS_OBJECT) ? Z_OBJCE_P(retval) : NULL;
+		if (ce && instanceof_function_ex(ce, phalcon_di_injectionawareinterface_ce, 1 TSRMLS_CC)) {
+			PHALCON_CALL_METHOD(NULL, retval, "setdi", this_ptr);
+		}
 		RETURN_ZVAL(retval, 1, 0);
 	}
 

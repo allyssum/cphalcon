@@ -35,6 +35,7 @@
 #include "kernel/concat.h"
 #include "kernel/string.h"
 #include "kernel/operators.h"
+#include "kernel/debug.h"
 
 /**
  * Phalcon\Db\Adapter\Pdo
@@ -481,13 +482,31 @@ PHP_METHOD(Phalcon_Db_Adapter_Pdo, executePrepared){
  */
 PHP_METHOD(Phalcon_Db_Adapter_Pdo, query){
 
-	zval *sql_statement, *bind_params = NULL, *bind_types = NULL, *profiler;
+	zval *sql_statement, *bind_params = NULL, *bind_types = NULL, *profiler, *debug_message = NULL;
 	zval *events_manager, *event_name = NULL, *status = NULL, *pdo;
 	zval *statement = NULL, *new_statement = NULL;
 
 	PHALCON_MM_GROW();
 
 	phalcon_fetch_params(1, 1, 2, &sql_statement, &bind_params, &bind_types);
+
+	if (unlikely(PHALCON_GLOBAL(debug).enable_debug)) {
+		PHALCON_INIT_NVAR(debug_message);
+		PHALCON_CONCAT_SV(debug_message, "SQL STATEMENT: ", sql_statement);
+		phalcon_debug_print_r(debug_message TSRMLS_CC);
+		if (bind_params && PHALCON_IS_NOT_EMPTY(bind_params)) {
+			PHALCON_INIT_NVAR(debug_message);
+			ZVAL_STRING(debug_message, "Bind Params: ", 1);
+			phalcon_debug_print_r(debug_message TSRMLS_CC);
+			phalcon_debug_print_r(bind_params TSRMLS_CC);
+		}
+		if (bind_types && PHALCON_IS_NOT_EMPTY(bind_types)) {
+			PHALCON_INIT_NVAR(debug_message);
+			ZVAL_STRING(debug_message, "Bind Types: ", 1);
+			phalcon_debug_print_r(debug_message TSRMLS_CC);
+			phalcon_debug_print_r(bind_types TSRMLS_CC);
+		}
+	}
 
 	if (!bind_params) {
 		bind_params = PHALCON_GLOBAL(z_null);
@@ -570,13 +589,31 @@ PHP_METHOD(Phalcon_Db_Adapter_Pdo, query){
  */
 PHP_METHOD(Phalcon_Db_Adapter_Pdo, execute){
 
-	zval *sql_statement, *bind_params = NULL, *bind_types = NULL, *profiler;
+	zval *sql_statement, *bind_params = NULL, *bind_types = NULL, *profiler, *debug_message = NULL;
 	zval *events_manager, *event_name = NULL, *status = NULL, *affected_rows = NULL;
 	zval *pdo, *statement = NULL, *new_statement = NULL;
 
 	PHALCON_MM_GROW();
 
 	phalcon_fetch_params(1, 1, 2, &sql_statement, &bind_params, &bind_types);
+
+	if (unlikely(PHALCON_GLOBAL(debug).enable_debug)) {
+		PHALCON_INIT_NVAR(debug_message);
+		PHALCON_CONCAT_SV(debug_message, "SQL STATEMENT: ", sql_statement);
+		phalcon_debug_print_r(debug_message TSRMLS_CC);
+		if (bind_params && PHALCON_IS_NOT_EMPTY(bind_params)) {
+			PHALCON_INIT_NVAR(debug_message);
+			ZVAL_STRING(debug_message, "Bind Params: ", 1);
+			phalcon_debug_print_r(debug_message TSRMLS_CC);
+			phalcon_debug_print_r(bind_params TSRMLS_CC);
+		}
+		if (bind_types && PHALCON_IS_NOT_EMPTY(bind_types)) {
+			PHALCON_INIT_NVAR(debug_message);
+			ZVAL_STRING(debug_message, "Bind Types: ", 1);
+			phalcon_debug_print_r(debug_message TSRMLS_CC);
+			phalcon_debug_print_r(bind_types TSRMLS_CC);
+		}
+	}
 
 	if (!bind_params) {
 		bind_params = PHALCON_GLOBAL(z_null);

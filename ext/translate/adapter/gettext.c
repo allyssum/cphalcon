@@ -161,6 +161,10 @@ PHP_METHOD(Phalcon_Translate_Adapter_Gettext, __construct){
 	PHALCON_CONCAT_SV(setting, "LC_ALL=", locale);
 	PHALCON_CALL_FUNCTION(NULL, "putenv", setting);
 
+	PHALCON_INIT_NVAR(setting);
+	PHALCON_CONCAT_SV(setting, "LANGUAGE=", locale);
+	PHALCON_CALL_FUNCTION(NULL, "putenv", setting);
+
 	PHALCON_INIT_VAR(constant);
 	if (zend_get_constant(SL("LC_ALL"), constant TSRMLS_CC)) {
 		PHALCON_CALL_FUNCTION(NULL, "setlocale", constant, locale);

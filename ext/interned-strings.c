@@ -60,6 +60,7 @@ const char *phalcon_interned_label					= NULL;
 const char *phalcon_interned_left					= NULL;
 const char *phalcon_interned_limit					= NULL;
 const char *phalcon_interned_forupdate				= NULL;
+const char *phalcon_interned_forceIndex				= NULL;
 const char *phalcon_interned_line					= NULL;
 const char *phalcon_interned_message				= NULL;
 const char *phalcon_interned_model					= NULL;
@@ -118,6 +119,7 @@ const char *phalcon_interned_transactionManager		= NULL;
 const char *phalcon_interned_assets					= NULL;
 const char *phalcon_interned_rows					= NULL;
 const char *phalcon_interned_view					= NULL;
+const char *phalcon_interned_app					= NULL;
 
 PHALCON_STATIC void phalcon_init_interned_strings(TSRMLS_D)
 {
@@ -159,6 +161,7 @@ PHALCON_STATIC void phalcon_init_interned_strings(TSRMLS_D)
 	phalcon_interned_left						= zend_new_interned_string(ZEND_STRS("left"), 0 TSRMLS_CC);
 	phalcon_interned_limit						= zend_new_interned_string(ZEND_STRS("limit"), 0 TSRMLS_CC);
 	phalcon_interned_forupdate					= zend_new_interned_string(ZEND_STRS("forupdate"), 0 TSRMLS_CC);
+	phalcon_interned_forceIndex					= zend_new_interned_string(ZEND_STRS("forceIndex"), 0 TSRMLS_CC);
 	phalcon_interned_line						= zend_new_interned_string(ZEND_STRS("line"), 0 TSRMLS_CC);
 	phalcon_interned_message					= zend_new_interned_string(ZEND_STRS("message"), 0 TSRMLS_CC);
 	phalcon_interned_model						= zend_new_interned_string(ZEND_STRS("model"), 0 TSRMLS_CC);
@@ -217,4 +220,5 @@ PHALCON_STATIC void phalcon_init_interned_strings(TSRMLS_D)
 	phalcon_interned_transactionManager			= zend_new_interned_string(ZEND_STRS("transactions"), 0 TSRMLS_CC);
 	phalcon_interned_assets						= zend_new_interned_string(ZEND_STRS("assets"), 0 TSRMLS_CC);
 	phalcon_interned_view						= zend_new_interned_string(ZEND_STRS("view"), 0 TSRMLS_CC);
+	phalcon_interned_app						= zend_new_interned_string(ZEND_STRS("app"), 0 TSRMLS_CC);
 }

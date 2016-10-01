@@ -91,6 +91,7 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getGroupBy);
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql);
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getQuery);
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getConditions);
+PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, forceIndex);
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_model_query_builder___construct, 0, 0, 0)
 	ZEND_ARG_INFO(0, params)
@@ -98,6 +99,10 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_model_query_builder_offset, 0, 0, 1)
 	ZEND_ARG_INFO(0, offset)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_phalcon_mvc_model_query_builder_forceindex, 0, 0, 1)
+	ZEND_ARG_INFO(0, index)
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry phalcon_mvc_model_query_builder_method_entry[] = {
@@ -134,6 +139,7 @@ static const zend_function_entry phalcon_mvc_model_query_builder_method_entry[] 
 	PHP_ME(Phalcon_Mvc_Model_Query_Builder, getPhql, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Query_Builder, getQuery, NULL, ZEND_ACC_PUBLIC)
 	PHP_ME(Phalcon_Mvc_Model_Query_Builder, getConditions, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Phalcon_Mvc_Model_Query_Builder, forceIndex, arginfo_phalcon_mvc_model_query_builder_forceindex, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 
@@ -159,6 +165,7 @@ PHALCON_INIT_CLASS(Phalcon_Mvc_Model_Query_Builder){
 	zend_declare_property_null(phalcon_mvc_model_query_builder_ce, SL("_bindTypes"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_null(phalcon_mvc_model_query_builder_ce, SL("_distinct"), ZEND_ACC_PROTECTED TSRMLS_CC);
 	zend_declare_property_long(phalcon_mvc_model_query_builder_ce, SL("_hiddenParamNumber"), 0, ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(phalcon_mvc_model_query_builder_ce, SL("_forceIndex"), ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	zend_class_implements(phalcon_mvc_model_query_builder_ce TSRMLS_CC, 1, phalcon_mvc_model_query_builderinterface_ce);
 
@@ -196,7 +203,7 @@ PHALCON_INIT_CLASS(Phalcon_Mvc_Model_Query_Builder){
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, __construct){
 
 	zval *params = NULL, *dependency_injector = NULL, *conditions = NULL;
-	zval *models, *columns, *group_clause, *joins;
+	zval *models, *force_index, *columns, *group_clause, *joins;
 	zval *having_clause, *order_clause, *limit_clause;
 	zval *offset_clause, *for_update, *shared_lock;
 	zval *limit, *offset, *single_condition_array = NULL, *single_condition_key = NULL;
@@ -321,6 +328,10 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, __construct){
 		 */
 		if (phalcon_array_isset_string_fetch(&models, params, SS("models"))) {
 			phalcon_update_property_this(this_ptr, SL("_models"), models TSRMLS_CC);
+		}
+
+		if (phalcon_array_isset_string_fetch(&force_index, params, SS("forceIndex"))) {
+			phalcon_update_property_this(this_ptr, SL("_forceIndex"), force_index TSRMLS_CC);
 		}
 
 		/** 
@@ -1427,18 +1438,17 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getGroupBy){
  */
 PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 
-	zval *dependency_injector = NULL, *models, *conditions = NULL, *distinct;
-	zval *model = NULL, *model_instance, *phql, *columns;
-	zval *selected_columns = NULL, *column = NULL, *column_alias = NULL;
+	zval *dependency_injector = NULL, *models, *conditions = NULL, *distinct, *model = NULL, *model_instance, *phql, *columns;
+	zval *selected_columns = NULL, *column = NULL, *column_alias = NULL, *escaped_item = NULL;
 	zval *aliased_column = NULL, *joined_columns = NULL, *model_column_alias = NULL;
 	zval *selected_column = NULL, *selected_models, *model_alias = NULL;
 	zval *selected_model = NULL, *joined_models, *joins;
 	zval *join = NULL, *join_model = NULL, *join_conditions = NULL, *join_alias = NULL;
 	zval *join_type = NULL, *group, *group_items, *group_item = NULL;
-	zval *escaped_item = NULL, *joined_items = NULL, *having, *order;
-	zval *order_items, *order_item = NULL, *limit, *number, *for_update;
-	HashTable *ah, *ah0, *ah1, *ah2, *ah3, *ah4, *ah5;
-	HashPosition hp, hp0, hp1, hp2, hp3, hp4, hp5;
+	zval *joined_items = NULL, *having, *order;
+	zval *order_items, *order_item = NULL, *limit, *number, *force_index, *force_index_items, *force_index_item = NULL, *for_update;
+	HashTable *ah, *ah0, *ah1, *ah2, *ah3, *ah4, *ah5, *ah6;
+	HashPosition hp, hp0, hp1, hp2, hp3, hp4, hp5, hp6;
 	zval **hd;
 	zend_class_entry *ce0;
 
@@ -1613,6 +1623,42 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 		PHALCON_SCONCAT_SVS(phql, " FROM [", models, "]");
 	}
 
+	force_index = phalcon_fetch_nproperty_this(this_ptr, SL("_forceIndex"), PH_NOISY TSRMLS_CC);
+	if (Z_TYPE_P(force_index) != IS_NULL) {
+		if (Z_TYPE_P(force_index) == IS_ARRAY) {
+
+			PHALCON_INIT_VAR(force_index_items);
+			array_init(force_index_items);
+
+			phalcon_is_iterable(force_index, &ah6, &hp6, 0, 0);
+
+			while (zend_hash_get_current_data_ex(ah6, (void**) &hd, &hp6) == SUCCESS) {
+				PHALCON_GET_HVALUE(force_index_item);
+
+				if (phalcon_is_numeric(force_index_item)) {
+					phalcon_array_append(&force_index_items, force_index_item, PH_COPY);
+				} else {
+					if (phalcon_memnstr_str(force_index_item, SL("."))) {
+						phalcon_array_append(&force_index_items, force_index_item, PH_COPY);
+					} else {
+						PHALCON_INIT_NVAR(escaped_item);
+						PHALCON_CONCAT_SVS(escaped_item, "[", force_index_item, "]");
+						phalcon_array_append(&force_index_items, escaped_item, PH_COPY);
+					}
+				}
+
+				zend_hash_move_forward_ex(ah5, &hp5);
+			}
+
+			PHALCON_INIT_NVAR(joined_items);
+			phalcon_fast_join_str(joined_items, SL(", "), force_index_items TSRMLS_CC);
+
+			PHALCON_SCONCAT_SVS(phql, " FORCEINDEX(", joined_items, ")");
+		} else {
+			PHALCON_SCONCAT_SVS(phql, " FORCEINDEX(", force_index, ")");
+		}
+	}
+
 	/** 
 	 * Check if joins were passed to the builders
 	 */
@@ -1701,7 +1747,6 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 			phalcon_is_iterable(group, &ah4, &hp4, 0, 0);
 
 			while (zend_hash_get_current_data_ex(ah4, (void**) &hd, &hp4) == SUCCESS) {
-
 				PHALCON_GET_HVALUE(group_item);
 
 				if (phalcon_is_numeric(group_item)) {
@@ -1766,7 +1811,6 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getPhql){
 			phalcon_is_iterable(order, &ah5, &hp5, 0, 0);
 
 			while (zend_hash_get_current_data_ex(ah5, (void**) &hd, &hp5) == SUCCESS) {
-
 				PHALCON_GET_HVALUE(order_item);
 
 				if (phalcon_is_numeric(order_item)) {
@@ -2028,3 +2072,12 @@ PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, getConditions){
 	RETURN_CTOR(conditions);
 }
 
+PHP_METHOD(Phalcon_Mvc_Model_Query_Builder, forceIndex){
+
+	zval *index;
+
+	phalcon_fetch_params(0, 1, 0, &index);
+
+	phalcon_update_property_this(this_ptr, SL("_forceIndex"), index TSRMLS_CC);
+	RETURN_THISW();
+}

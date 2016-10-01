@@ -709,6 +709,7 @@ PHP_METHOD(Phalcon_Dispatcher, dispatch){
 		 */
 		PHALCON_INIT_NVAR(action_method);
 		PHALCON_CONCAT_VV(action_method, action_name, action_suffix);
+
 		if (phalcon_method_exists(handler, action_method TSRMLS_CC) == FAILURE) {
 
 			/**

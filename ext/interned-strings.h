@@ -60,6 +60,7 @@ extern const char *phalcon_interned_label;
 extern const char *phalcon_interned_left;
 extern const char *phalcon_interned_limit;
 extern const char *phalcon_interned_forupdate;
+extern const char *phalcon_interned_forceIndex;
 extern const char *phalcon_interned_line;
 extern const char *phalcon_interned_message;
 extern const char *phalcon_interned_model;
@@ -118,6 +119,7 @@ extern const char *phalcon_interned_eventsManager;
 extern const char *phalcon_interned_transactionManager;
 extern const char *phalcon_interned_assets;
 extern const char *phalcon_interned_view;
+extern const char *phalcon_interned_app;
 
 void phalcon_init_interned_strings(TSRMLS_D);
 

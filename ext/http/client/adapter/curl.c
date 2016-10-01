@@ -384,7 +384,7 @@ PHP_METHOD(Phalcon_Http_Client_Adapter_Curl, sendInternal){
 		phalcon_substr(headerstr, content, 0 , Z_LVAL_P(headersize));
 
 		PHALCON_INIT_VAR(bodystr);
-		phalcon_substr(bodystr, content, Z_LVAL_P(headersize) , Z_STRLEN_P(content));
+		phalcon_substr(bodystr, content, Z_LVAL_P(headersize) , Z_STRLEN_P(content) - Z_LVAL_P(headersize));
 
 		PHALCON_CALL_METHOD(NULL, response, "setheader", headerstr);
 		PHALCON_CALL_METHOD(NULL, response, "setbody", bodystr);

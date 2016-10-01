@@ -863,11 +863,11 @@ PHP_METHOD(Phalcon_Http_Request, getRawBody){
  * Gets decoded JSON HTTP raw request body
  *
  * @param bool $assoc
- * @return string
+ * @return mixed
  */
 PHP_METHOD(Phalcon_Http_Request, getJsonRawBody){
 
-	zval *raw_body = NULL, *assoc = NULL;
+	zval *assoc = NULL, *raw_body = NULL;
 	int ac = 0;
 
 	PHALCON_MM_GROW();

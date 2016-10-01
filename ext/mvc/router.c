@@ -1055,7 +1055,7 @@ PHP_METHOD(Phalcon_Mvc_Router, handle){
 
 		if (unlikely(PHALCON_GLOBAL(debug).enable_debug)) {
 			PHALCON_INIT_NVAR(debug_message);
-			ZVAL_STRING(debug_message, "--Use Debug", 1);
+			PHALCON_CONCAT_SV(debug_message, "Route not found: ", uri);
 			phalcon_debug_print_r(debug_message TSRMLS_CC);
 		}
 
@@ -1083,7 +1083,7 @@ PHP_METHOD(Phalcon_Mvc_Router, handle){
 
 	PHALCON_CALL_METHOD(NULL, this_ptr, "fireevent", event_name);
 
-	PHALCON_MM_RESTORE();
+	RETURN_CTOR(route_found);
 }
 
 /**

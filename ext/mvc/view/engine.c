@@ -229,7 +229,7 @@ PHP_METHOD(Phalcon_Mvc_View_Engine, __call){
 		return;
 	}
 
-	if (!phalcon_method_exists(service, method_name TSRMLS_CC) == FAILURE) {
+	if (phalcon_method_exists(service, method_name TSRMLS_CC) == FAILURE) {
 		PHALCON_INIT_NVAR(exception_message);
 		PHALCON_CONCAT_SVS(exception_message, "The method \"", method_name, "\" doesn't exist on view");
 		PHALCON_THROW_EXCEPTION_ZVAL(phalcon_mvc_view_exception_ce, exception_message);

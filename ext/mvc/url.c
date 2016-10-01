@@ -304,7 +304,11 @@ PHP_METHOD(Phalcon_Mvc_Url, get){
 		}
 
 		if (Z_TYPE_P(local) == IS_NULL || zend_is_true(local)) {
-			PHALCON_CONCAT_VV(return_value, base_uri, uri);
+			if (Z_STRLEN_P(uri) > 0 && Z_STRVAL_P(uri)[0] != '/') {
+				PHALCON_CONCAT_VV(return_value, base_uri, uri);
+			} else {
+				ZVAL_ZVAL(return_value, uri, 1, 0);
+			}
 		} else {
 			ZVAL_ZVAL(return_value, uri, 1, 0);
 		}
