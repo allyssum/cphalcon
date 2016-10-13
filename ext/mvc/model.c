@@ -1171,7 +1171,7 @@ PHP_METHOD(Phalcon_Mvc_Model, getWriteConnection){
  */
 PHP_METHOD(Phalcon_Mvc_Model, assign){
 
-	zval *data, *column_map = NULL, *value = NULL, *key = NULL, *attribute = NULL;
+	zval *data, *column_map = NULL, *white_list = NULL, *value = NULL, *key = NULL, *attribute = NULL, *possible_setter = NULL;
 	zval *exception_message = NULL;
 	HashTable *ah0;
 	HashPosition hp0;
@@ -1179,10 +1179,13 @@ PHP_METHOD(Phalcon_Mvc_Model, assign){
 
 	PHALCON_MM_GROW();
 
-	phalcon_fetch_params(1, 1, 1, &data, &column_map);
+	phalcon_fetch_params(1, 1, 2, &data, &column_map, &white_list);
 
 	if (!column_map) {
 		column_map = PHALCON_GLOBAL(z_null);
+	}
+	if (!white_list) {
+		white_list = PHALCON_GLOBAL(z_null);
 	}
 
 	if (Z_TYPE_P(data) != IS_ARRAY) { 
@@ -1205,18 +1208,33 @@ PHP_METHOD(Phalcon_Mvc_Model, assign){
 			/**
 			 * Every field must be part of the column map
 			 */
-			if (phalcon_array_isset(column_map, key)) {
-				PHALCON_OBS_NVAR(attribute);
-				phalcon_array_fetch(&attribute, column_map, key, PH_NOISY);
-				phalcon_update_property_zval_zval(this_ptr, attribute, value TSRMLS_CC);
-			} else {
-				PHALCON_INIT_NVAR(exception_message);
-				PHALCON_CONCAT_SVS(exception_message, "Column \"", key, "\" doesn't make part of the column map");
-				PHALCON_THROW_EXCEPTION_ZVAL(phalcon_mvc_model_exception_ce, exception_message);
-				return;
+			if (!phalcon_array_isset_fetch(&attribute, column_map, key)) {
+				if (phalcon_fast_in_array(key, column_map TSRMLS_CC)) {
+					PHALCON_CPY_WRT(attribute, key);
+				} else {
+					PHALCON_INIT_NVAR(exception_message);
+					PHALCON_CONCAT_SVS(exception_message, "Column \"", key, "\" doesn't make part of the column map");
+					PHALCON_THROW_EXCEPTION_ZVAL(phalcon_mvc_model_exception_ce, exception_message);
+					return;
+				}
 			}
 		} else {
-			phalcon_update_property_zval_zval(this_ptr, key, value TSRMLS_CC);
+			PHALCON_CPY_WRT(attribute, key);
+		}
+
+		if (Z_TYPE_P(white_list) != IS_ARRAY || phalcon_fast_in_array(attribute, white_list TSRMLS_CC)) {
+			if (PHALCON_GLOBAL(orm).enable_property_method) {
+				PHALCON_INIT_NVAR(possible_setter);
+				PHALCON_CONCAT_SV(possible_setter, "set", attribute);
+				zend_str_tolower(Z_STRVAL_P(possible_setter), Z_STRLEN_P(possible_setter));
+				if (phalcon_method_exists_ex(this_ptr, Z_STRVAL_P(possible_setter), Z_STRLEN_P(possible_setter)+1 TSRMLS_CC) == SUCCESS) {
+					PHALCON_CALL_METHOD(NULL, this_ptr, Z_STRVAL_P(possible_setter), value);
+				} else {
+					phalcon_update_property_zval_zval(this_ptr, attribute, value TSRMLS_CC);
+				}
+			} else {
+				phalcon_update_property_zval_zval(this_ptr, attribute, value TSRMLS_CC);
+			}
 		}
 
 		zend_hash_move_forward_ex(ah0, &hp0);
@@ -4900,7 +4918,7 @@ PHP_METHOD(Phalcon_Mvc_Model, save){
 
 	zval *data = NULL, *white_list = NULL, *exists = NULL, *exists_check = NULL, *exists2 = NULL;
 	zval *event_name = NULL, *type, *message, *meta_data = NULL, *attributes = NULL;
-	zval *attribute = NULL, *value = NULL, *possible_setter = NULL, *bind_params, *write_connection = NULL;
+	zval *attribute = NULL, *value = NULL, *bind_params, *write_connection = NULL;
 	zval *related, *status = NULL, *schema = NULL, *source = NULL, *table = NULL, *read_connection = NULL;
 	zval *error_messages = NULL, *identity_field = NULL, *related_key = NULL;
 	zval *nesting = NULL, *exception, *success = NULL, *new_success = NULL, *snapshot_data = NULL;
@@ -4945,6 +4963,7 @@ PHP_METHOD(Phalcon_Mvc_Model, save){
 			PHALCON_THROW_EXCEPTION_STR(phalcon_mvc_model_exception_ce, "Data passed to save() must be an array");
 			return;
 		}
+		PHALCON_CALL_METHOD(NULL, this_ptr, "assign", data, attributes, white_list);
 	}
 
 	PHALCON_INIT_VAR(bind_params);
@@ -4955,36 +4974,6 @@ PHP_METHOD(Phalcon_Mvc_Model, save){
 	while (zend_hash_get_current_data_ex(ah0, (void**) &hd, &hp0) == SUCCESS) {
 
 		PHALCON_GET_HVALUE(attribute);
-
-		if (Z_TYPE_P(data) == IS_ARRAY && phalcon_array_isset(data, attribute)) {
-			/**
-			 * If the white-list is an array check if the attribute is on that list
-			 */
-			if (Z_TYPE_P(white_list) != IS_ARRAY || !phalcon_fast_in_array(attribute, white_list TSRMLS_CC)) {
-				/**
-				 * We check if the field has a setter
-				 */
-				PHALCON_OBS_NVAR(value);
-				phalcon_array_fetch(&value, data, attribute, PH_NOISY);
-
-				if (PHALCON_GLOBAL(orm).enable_property_method) {
-					PHALCON_INIT_NVAR(possible_setter);
-					PHALCON_CONCAT_SV(possible_setter, "set", attribute);
-					zend_str_tolower(Z_STRVAL_P(possible_setter), Z_STRLEN_P(possible_setter));
-					if (phalcon_method_exists_ex(this_ptr, Z_STRVAL_P(possible_setter), Z_STRLEN_P(possible_setter)+1 TSRMLS_CC) == SUCCESS) {
-						PHALCON_CALL_METHOD(NULL, this_ptr, Z_STRVAL_P(possible_setter), value);
-					} else {
-						phalcon_update_property_zval_zval(this_ptr, attribute, value TSRMLS_CC);
-					}
-				} else {
-					/**
-					 * Otherwise we assign the attribute directly
-					 */
-					phalcon_update_property_zval_zval(this_ptr, attribute, value TSRMLS_CC);
-				}
-
-			}
-		}
 
 		if (phalcon_isset_property_zval(this_ptr, attribute TSRMLS_CC)) {
 			PHALCON_OBS_NVAR(value);
