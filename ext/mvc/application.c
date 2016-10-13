@@ -160,7 +160,7 @@ PHALCON_INIT_CLASS(Phalcon_Mvc_Application){
  */
 PHP_METHOD(Phalcon_Mvc_Application, __construct){
 
-	zval *dependency_injector = NULL, *name;
+	zval *dependency_injector = NULL;
 
 	PHALCON_MM_GROW();
 
@@ -168,13 +168,7 @@ PHP_METHOD(Phalcon_Mvc_Application, __construct){
 
 	if (dependency_injector) {
 		PHALCON_CALL_METHOD(NULL, this_ptr, "setdi", dependency_injector);
-	} else {
-		PHALCON_CALL_METHOD(&dependency_injector, this_ptr, "getdi");
 	}
-
-	PHALCON_INIT_VAR(name);
-	PHALCON_ZVAL_MAYBE_INTERNED_STRING(name, phalcon_interned_app);
-	PHALCON_CALL_METHOD(NULL, dependency_injector, "setShared", name, this_ptr);
 
 	RETURN_MM();
 }
@@ -296,7 +290,7 @@ PHP_METHOD(Phalcon_Mvc_Application, getDefaultModule){
  */
 PHP_METHOD(Phalcon_Mvc_Application, handle){
 
-	zval *uri = NULL, *dependency_injector = NULL, *event_name = NULL;
+	zval *uri = NULL, *dependency_injector = NULL, *event_name = NULL, *name;
 	zval *status = NULL, *service = NULL, *router = NULL, *route_found = NULL, *module_name = NULL;
 	zval *module_object = NULL, *modules;
 	zval *module, *class_name = NULL, *module_params;
@@ -324,6 +318,10 @@ PHP_METHOD(Phalcon_Mvc_Application, handle){
 	}
 
 	PHALCON_CALL_METHOD(&dependency_injector, this_ptr, "getdi");
+
+	PHALCON_INIT_VAR(name);
+	PHALCON_ZVAL_MAYBE_INTERNED_STRING(name, phalcon_interned_app);
+	PHALCON_CALL_METHOD(NULL, dependency_injector, "setShared", name, this_ptr);
 
 	PHALCON_INIT_VAR(service);
 	PHALCON_ZVAL_MAYBE_INTERNED_STRING(service, phalcon_interned_router);
